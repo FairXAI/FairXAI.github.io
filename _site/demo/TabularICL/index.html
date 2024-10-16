@@ -1,0 +1,337 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+
+
+    <meta charset="utf-8">
+    <meta name="description"
+          content="Strategic Demonstration Selection for Improved Fairness in LLM In-Context Learning. We explore LLMs fairness performance on tabular classification tasks.">
+    <meta name="keywords" content="LLMs, Fairness, In-context Learning, Tabular Data">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Strategic Demonstration Selection for Improved Fairness in LLM In-Context Learning</title>
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PYVRSFMDRL"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+
+        gtag('js', new Date());
+
+        gtag('config', 'G-PYVRSFMDRL');
+    </script>
+
+    <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+          rel="stylesheet">
+
+    <link rel="stylesheet" href="./static/css/bulma.min.css">
+    <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+    <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+    <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+    <link rel="stylesheet" href="./static/css/index.css">
+    <link rel="icon" href="./static/images/icon_fair.svg">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script defer src="./static/js/fontawesome.all.min.js"></script>
+    <script src="./static/js/bulma-carousel.min.js"></script>
+    <script src="./static/js/bulma-slider.min.js"></script>
+    <script src="./static/js/index.js"></script>
+</head>
+<body>
+
+    <nav class="navbar" role="navigation" aria-label="main navigation">
+        <div class="navbar-brand">
+            <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+            </a>
+        </div>
+        <!-- <div class="navbar-menu">
+          <div class="navbar-start" style="flex-grow: 1; justify-content: center;">
+            <a class="navbar-item" href="xxxxx">
+            <span class="icon">
+                <i class="fas fa-home"></i>
+            </span>
+            </a>
+
+            <div class="navbar-item has-dropdown is-hoverable">
+              <a class="navbar-link">
+                More Research
+              </a>
+              <div class="navbar-dropdown">
+                <a class="navbar-item" href="https://hypernerf.github.io">
+                  HyperNeRF
+                </a>
+                <a class="navbar-item" href="https://nerfies.github.io">
+                  Nerfies
+                </a>
+                <a class="navbar-item" href="https://latentfusion.github.io">
+                  LatentFusion
+                </a>
+                <a class="navbar-item" href="https://photoshape.github.io">
+                  PhotoShape
+                </a>
+              </div>
+            </div>
+          </div>
+        </div> -->
+    </nav>
+
+
+    <section class="hero">
+        <div class="hero-body">
+            <div class="container is-max-desktop">
+                <div class="columns is-centered">
+                    <div class="column has-text-centered">
+                        <h1 class="title is-1 publication-title " style="color: hsl(205, 100%, 38%);">Strategic Demonstration Selection for Improved Fairness in LLM In-Context Learning</h1>
+                        <div class="is-size-5 publication-authors">
+                            <span class="author-block">
+                                <a href="https://research-information.bris.ac.uk/en/persons/jingyu-hu">Jingyu Hu</a><sup>1</sup>,
+                            </span>
+                            <span class="author-block">
+                                <a href="https://scholar.google.com/citations?user=YaZANscAAAAJ">Weiru Liu</a><sup>1</sup>,
+                            </span>
+                            <span class="author-block">
+                                <a href="https://scholar.google.com/citations?user=0i-Js2gAAAAJ">Mengnan Du</a><sup>2</sup>,
+                            </span>
+                        </div>
+
+                        <div class="is-size-5 publication-authors">
+                            <span class="author-block"><sup>1</sup>University of Bristol,</span>
+                            <span class="author-block"><sup>2</sup>New Jersey Institute of Technology</span>
+                        </div>
+
+                        <div class="column has-text-centered">
+                            <div class="publication-links">
+
+                                <span class="link-block">
+                                    <a href="https://arxiv.org/abs/2011.12948"
+                                       class="external-link button is-normal is-rounded is-dark">
+                                        <span class="icon">
+                                            <i class="ai ai-arxiv"></i>
+                                        </span>
+                                        <span>arXiv</span>
+                                    </a>
+                                </span>
+                                <!-- PDF Link. -->
+                                <span class="link-block">
+                                    <a href="xxxxx"
+                                       class="external-link button is-normal is-rounded is-dark">
+                                        <span class="icon">
+                                            <i class="fas fa-file-pdf"></i>
+                                        </span>
+                                        <span>Poster</span>
+                                    </a>
+                                </span>
+                                <!-- Video Link. -->
+                                <!-- <span class="link-block">
+                                  <a href="TBC_video"
+                                     class="external-link button is-normal is-rounded is-dark">
+                                    <span class="icon">
+                                        <i class="fab fa-youtube"></i>
+                                    </span>
+                                    <span>Poster</span>
+                                  </a>
+                                </span> -->
+                                <!-- Code Link. -->
+                                <span class="link-block">
+                                    <a href="TBC_code"
+                                       class="external-link button is-normal is-rounded is-dark">
+                                        <span class="icon">
+                                            <i class="fab fa-github"></i>
+                                        </span>
+                                        <span>Code</span>
+                                    </a>
+                                </span>
+                                <!-- Dataset Link. -->
+                                <!-- <span class="link-block"> -->
+                                <!-- <a href="https://github.com/google/nerfies/releases/tag/0.1"
+                                   class="external-link button is-normal is-rounded is-dark">
+                                  <span class="icon">
+                                      <i class="far fa-images"></i>
+                                  </span>
+                                  <span>Data</span>
+                                  </a> -->
+                            </div>
+
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="columns is-centered">
+        <img src="./static/figs/workflow.jpg" width="80%">
+    </div>
+
+    <!-- Abstract -->
+    <section class="section">
+        <div class="container is-max-desktop">
+            <!-- Abstract. -->
+            <div class="columns is-centered has-text-centered">
+                <div class="column is-four-fifths">
+                    <h2 class="title is-3" style="color: hsl(205, 100%, 38%);">Abstract</h2>
+                    <div class="content has-text-justified">
+                        <p>
+                            Recent studies highlight the effectiveness of using in-context learning (ICL) to steer large language models (LLMs) in processing tabular data, a challenging task given the structured nature of such data. Despite advancements in performance, the fairness implications of these methods are less understood. This study investigates how varying demonstrations within ICL prompts influence the fairness outcomes of LLMs.
+                        </p>
+                        <p>
+                            Our findings reveal that deliberately including minority group samples in prompts significantly boosts fairness without sacrificing predictive accuracy. Further experiments demonstrate that the proportion of minority to majority samples in demonstrations affects the trade-off between fairness and prediction accuracy. Based on these insights, we introduce a mitigation technique that employs clustering and evolutionary strategies to curate a diverse and representative sample set from the training data. This approach aims to enhance both predictive performance and fairness in ICL applications. Experimental results validate that our proposed method dramatically improves fairness across various metrics, showing its efficacy in real-world scenarios.
+                        </p>
+                        <p>
+                            <b>Keywords:</b> LLMs, Fairness, In-context Learning, Tabular Data
+                        </p>
+
+                    </div>
+                </div>
+            </div>
+            <!--/ Abstract. -->
+
+
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container is-max-desktop">
+            <!-- Abstract. -->
+            <div class="columns is-centered has-text-centered">
+                <div class="column is-four-fifths">
+                    <h2 class="title is-3" style="color: hsl(205, 100%, 38%);">RQ1: How do different demonstration strategies impact LLMs fairness performance?</h2>
+                    <div class="content has-text-justified">
+
+                        <div class="columns is-centered">
+                            <img src="./static/figs/RQ1.jpg" width="100%">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--/ Abstract. -->
+
+
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container is-max-desktop">
+            <!-- Abstract. -->
+            <div class="columns is-centered has-text-centered">
+                <div class="column is-four-fifths">
+                    <h2 class="title is-3" style="color: hsl(205, 100%, 38%);">
+                        RQ2: Why does prioritizing minority group benefit LLMs fairness?
+                    </h2>
+                    <div class="content has-text-justified">
+
+                        <div class="columns is-centered">
+                            <img src="./static/figs/RQ2.jpg" width="100%">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--/ Abstract. -->
+
+
+        </div>
+    </section>
+
+
+
+
+    <section class="section">
+        <div class="container is-max-desktop">
+            <!-- RQ3. -->
+            <div class="columns is-centered has-text-centered">
+                <div class="column is-fifths-fifths">
+                    <h2 class="title is-3" style="color: hsl(205, 100%, 38%);">
+                        RQ3: Design a scheme to extract more representative demonstrations based on the above findings
+                    </h2>
+                    <div class="content has-text-justified">
+
+                        <div class="columns is-centered">
+                            <img src="./static/figs/RQ3_P1.jpg" width="100%">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="columns is-centered">
+                <!-- Results FCG -->
+                <div class="column">
+                    <div class="content">
+
+                        <div class="columns is-centered">
+                            <img src="./static/figs/RQ3_P2.jpg" width="100%">
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- FCG ablation study. -->
+                <div class="column">
+                    <div class="columns is-centered">
+                        <div class="column content">
+
+                            <div class="columns is-centered">
+                                <img src="./static/figs/RQ3_P3.jpg" width="78%">
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+    </section>
+
+    <section class="section" id="BibTeX">
+        <div class="container is-max-desktop content">
+            <h2 class="title" style="color: hsl(205, 100%, 38%);">BibTeX</h2>
+            <pre><code>@article{hu2024strategic,
+      title={Strategic Demonstration Selection for Improved Fairness in LLM In-Context Learning},
+      author={Hu, Jingyu and Liu, Weiru and Du, Mengnan},
+      journal={arXiv preprint arXiv:2408.09757},
+      year={2024}
+    }</code></pre>
+        </div>
+    </section>
+
+
+    <footer class="footer">
+        <div class="container">
+            <!-- <div class="content has-text-centered">
+              <a class="icon-link"
+                 href="./static/videos/nerfies_paper.pdf">
+                <i class="fas fa-file-pdf"></i>
+              </a>
+              <a class="icon-link" href="https://github.com/keunhong" class="external-link" disabled>
+                <i class="fab fa-github"></i>
+              </a>
+            </div> -->
+            <div class="columns is-centered">
+                <div class="column is-8">
+                    <div class="content">
+                        <p>
+                            This website is licensed under a <a rel="license"
+                                                                href="http://creativecommons.org/licenses/by-sa/4.0/">
+                                Creative
+                                Commons Attribution-ShareAlike 4.0 International License
+                            </a>.
+                            We thank the website template from <a href="https://github.com/nerfies/nerfies.github.io">Nerfies</a>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
