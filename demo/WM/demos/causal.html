@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Demo 2 · Causal Consistency</title>
+	<link rel="stylesheet" href="../style.css" />
+	<style>
+		/* Demo 2. Embedded in ../index.html through an iframe; also opens on its own for debugging. */
+		/* The host sizes the iframe to fit (see the ResizeObserver below), so the page never needs its own scrollbar. Without this,
+		   a fraction of a pixel of overflow shows a scrollbar, the width shrinks, the text reflows, the height changes, and the frame jitters. */
+		html { overflow: hidden; }
+		body { display: flow-root; background: none; }
+		.demo { margin-top: 24px; }
+		.demo { display: grid; grid-template-columns: 1.35fr 1fr; gap: 30px; align-items: start; padding: 2px; }
+		.tabs { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; }
+		.tabs button, .actions button { font: inherit; cursor: pointer; background: transparent; color: var(--ink); }
+		.tabs button { padding: 8px 14px; border: 1px solid var(--line); border-radius: 999px; font-size: 0.78rem; font-weight: 680; }
+		.tabs button[aria-pressed='true'] { color: var(--paper); background: var(--ink); border-color: var(--ink); }
+
+		.world { display: grid; grid-template-columns: 1fr 1.2fr 1fr; min-height: 300px; border: 1px solid var(--line); background: var(--paper-deep); }
+		.zone { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 8px; padding: 14px 10px 40px; position: relative; }
+		.zone small { position: absolute; left: 0; right: 0; bottom: 12px; text-align: center; color: var(--ink-soft); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+		.floor { border-inline: 1px solid var(--line); background: var(--foam); transition: background 300ms; }
+		.floor.wet { background: repeating-linear-gradient(0deg, #bcd9ee 0 8px, #7fb3dc 8px 16px); }
+		.floor.wet small { color: var(--navy); }
+		.item { padding: 8px 12px; border: 1px solid var(--navy); background: var(--paper); color: var(--navy); font-size: 0.74rem; font-weight: 700; text-align: center; }
+		.item.truck { color: var(--paper); background: var(--navy); }
+
+		.panel .label { margin: 0 0 6px; color: var(--ink-soft); font-size: 0.64rem; font-weight: 700; letter-spacing: 0.11em; text-transform: uppercase; }
+		.panel p { margin-bottom: 18px; color: var(--ink-soft); font-family: var(--serif); line-height: 1.45; }
+		.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+		.actions button { padding: 8px 14px; border: 1px solid var(--ink); border-radius: 999px; font-size: 0.8rem; font-weight: 650; }
+		.actions button:hover { color: var(--paper); background: var(--ink); }
+		.actions .new { border-color: var(--sea); color: var(--sea); }
+		.actions .new:hover { background: var(--sea); }
+		.actions .reset { border-color: var(--line); color: var(--ink-soft); }
+		.checks { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+		.status.bad { color: var(--paper); background: var(--navy); border-color: var(--navy); }
+		.status.bad::before { background: var(--paper); box-shadow: none; }
+		.status.off::before { background: transparent; border: 1px solid var(--ink-soft); box-shadow: none; }
+		.msg { min-height: 3em; font-size: 0.86rem; color: var(--ink); }
+		.note { grid-column: 1 / -1; margin: 0; color: var(--ink-soft); font-size: 0.72rem; }
+		@media (max-width: 760px) { .demo { grid-template-columns: 1fr; } .world { min-height: 220px; } }
+
+		/* Views: three model-written game pages (causal/*.html) driven from here, as in v8/visualize's three-view page. */
+		#demo-2-views .tabs { margin: 22px 0 18px; }
+		.game { aspect-ratio: 3 / 4; overflow: hidden; border: 1px solid var(--line); border-radius: 6px; background: #05080c; cursor: pointer; }
+		.game.on { border-color: var(--sea); box-shadow: 0 0 0 1px var(--sea); }
+		.game iframe { display: block; width: 100%; height: 100%; border: 0; }
+		.views .card .meta { margin-top: 14px; }
+		.views .card p { margin-bottom: 0; }
+		.case { display: grid; grid-template-columns: 1fr 1fr; gap: 34px; margin-bottom: 34px; padding: 24px 0; border-block: 1px solid var(--line); }
+		.case .label { margin: 0 0 6px; color: var(--ink-soft); font-size: 0.64rem; font-weight: 700; letter-spacing: 0.11em; text-transform: uppercase; }
+		.case p:not(.label) { margin: 0 0 20px; color: var(--ink); font-family: var(--serif); line-height: 1.45; }
+		.case .quote { font-style: italic; }
+		.trace { font-family: inherit !important; font-size: 0.8rem; line-height: 2.1 !important; color: var(--ink-soft) !important; }
+		.trace span { padding: 3px 9px; border: 1px solid var(--line); border-radius: 999px; color: var(--navy); font-weight: 680; white-space: nowrap; }
+		.trace span.bad { color: var(--paper); background: var(--navy); border-color: var(--navy); }
+		.rules { margin: 0; padding: 0; list-style: none; }
+		.rules li { display: grid; grid-template-columns: 2.2em 1fr auto; gap: 4px 10px; padding: 10px 0; border-top: 1px solid var(--line); font-family: var(--serif); }
+		.rules li b { color: var(--sea); font-weight: 600; }
+		.rules li .status { align-self: start; padding: 4px 10px; font-size: 0.68rem; font-family: var(--sans, inherit); }
+		.rules li small { grid-column: 2 / -1; color: var(--ink-soft); font-size: 0.86rem; line-height: 1.4; }
+		.rules li.broken small { color: var(--navy); font-weight: 600; }
+		#code { margin: 0 0 20px; padding: 12px 14px; overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--paper-deep); font: 0.74rem/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; }
+		#code mark { display: inline-block; min-width: 100%; color: var(--paper); background: var(--navy); }
+		#code i { color: var(--ink-soft); font-style: normal; }
+		@media (max-width: 760px) { .case { grid-template-columns: 1fr; } }
+		.bar { margin: 26px 0 10px; }
+		.rq p { max-width: 760px; margin-bottom: 12px; color: var(--ink-soft); font-family: var(--serif); font-size: 1.06rem; line-height: 1.48; }
+		.rq p b { color: var(--ink); }
+		.bar .actions { margin-bottom: 12px; }
+
+		/* RQ2 results, drawn by causal/results.js from causal/rq2.js (written by causal/rq2_data.py). Same pieces as blueprint.html's statistics. */
+		.rq h4 { margin: 44px 0 6px; font-size: 1.12rem; font-weight: 650; letter-spacing: -0.01em; }
+		.rq .tiles { display: grid; grid-template-columns: repeat(5, 1fr); margin-top: 28px; border-top: 1px solid var(--line); }
+		.rq .tiles div { padding: 20px 16px 22px 20px; border-right: 1px solid var(--line); }
+		.rq .tiles div:first-child { padding-left: 0; }
+		.rq .tiles div:last-child { border-right: 0; }
+		.rq .tiles strong { display: block; font-size: clamp(1.5rem, 2.6vw, 2.1rem); font-weight: 620; letter-spacing: -0.03em; line-height: 1.1; white-space: nowrap; }
+		.rq .tiles span { display: block; margin-top: 6px; color: var(--ink-soft); font-family: var(--serif); font-size: 0.86rem; line-height: 1.35; }
+		.rq .charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px 40px; margin-top: 22px; }
+		.rq .chart h5 { margin: 0 0 4px; font-size: 0.98rem; font-weight: 650; letter-spacing: -0.01em; }
+		.rq .chart > p { max-width: none; margin: 0 0 14px; color: var(--ink-soft); font-family: var(--serif); font-size: 0.92rem; line-height: 1.4; }
+		.keys { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 14px; color: var(--ink-soft); font-size: 0.74rem; }
+		.keys i { display: inline-block; width: 18px; height: 10px; margin-right: 6px; vertical-align: -1px; border-radius: 0 3px 3px 0; }
+		.keys i.line { height: 0; border-top: 2px solid; border-radius: 0; vertical-align: middle; }
+		.hb { display: grid; grid-template-columns: max-content 1fr; gap: 10px 12px; align-items: center; font-size: 0.78rem; }
+		.hb > span { color: var(--ink); }
+		.hb .track { display: grid; gap: 2px; min-width: 0; }
+		.hb .track div { display: flex; align-items: center; gap: 8px; height: 14px; }
+		.hb .fill { height: 100%; border-radius: 0 4px 4px 0; }
+		.hb .val { color: var(--ink-soft); font-variant-numeric: tabular-nums; white-space: nowrap; }
+		.hb .none { color: var(--ink-soft); font-size: 0.7rem; font-style: italic; }
+		.fill.par { background: var(--sea-light); }
+		.fill.ser { background: var(--navy); }
+		.lines svg { display: block; width: 100%; height: auto; overflow: visible; font: 11px var(--sans); }
+		.lines .grid { stroke: var(--line); }
+		.lines .base { stroke: rgba(11, 28, 48, 0.35); }
+		.lines .tick { fill: var(--ink-soft); font-variant-numeric: tabular-nums; }
+		.lines path { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+		.lines circle { stroke: var(--paper); stroke-width: 2; }
+		.lines .end { fill: var(--ink-soft); }
+		.lines .end tspan:first-child { fill: var(--ink); font-weight: 700; }
+		.lines .hair { stroke: var(--ink-soft); stroke-dasharray: 3 3; }
+		table.sum { width: 100%; margin-top: 18px; border-collapse: collapse; font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+		table.sum th, table.sum td { padding: 7px 8px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+		table.sum th { color: var(--ink-soft); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; vertical-align: bottom; }
+		table.sum th:first-child, table.sum td:first-child { padding-left: 0; text-align: left; }
+		table.sum td.na { color: var(--ink-soft); }
+		.rq p.note { margin-top: 14px; font-family: var(--sans); font-size: 0.72rem; line-height: 1.5; }
+		.scroll { overflow-x: auto; }
+		.tip { position: fixed; z-index: 10; padding: 6px 10px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); font-size: 0.74rem; line-height: 1.45; pointer-events: none; box-shadow: 0 6px 18px rgba(11, 28, 48, 0.12); }
+		.tip i { display: inline-block; width: 10px; height: 2px; margin-right: 6px; vertical-align: middle; }
+		@media (max-width: 900px) {
+			.rq .charts { grid-template-columns: minmax(0, 1fr); }
+			.rq .tiles { grid-template-columns: repeat(2, 1fr); }
+			.rq .tiles div, .rq .tiles div:first-child { padding-left: 0; border-right: 0; border-bottom: 1px solid var(--line); }
+		}
+	</style>
+</head>
+<body>
+	<div class="section-head">
+		<p class="eyebrow">Demo 2 · Causal Consistency</p>
+		<h2>Can a Model Keep the Rules as the World Grows?</h2>
+		<p class="lede">A generated world may seem to run fine and still let a player skip a required step. We test whether the causal rules in a world's description are followed when it is built, and maintained when it is extended.</p>
+	</div>
+
+	<div class="block">
+		<p class="eyebrow">Motivation</p>
+		<h3>One Rule, One New Request.</h3>
+		<p>A wet road. Round 1 builds the world with a truck; round 2 adds a motorcycle. The motorcycle can cross in both round-2 versions, but only one still makes you dry the road first.</p>
+		<div class="demo">
+			<div class="tabs" id="tabs"></div>
+			<div class="world">
+				<div class="zone" id="near"><small>Near side</small></div>
+				<div class="zone floor" id="floor"><small></small></div>
+				<div class="zone" id="far"><small>Far side</small></div>
+			</div>
+			<div class="panel">
+				<p class="label" id="request-label"></p>
+				<p id="request"></p>
+				<p class="label">Rule from Round 1</p>
+				<p>Any vehicle crossing the wet road skids, so no vehicle can reach the far side until the road has been dried.</p>
+				<div class="actions" id="actions"></div>
+				<div class="checks" id="checks"></div>
+				<div class="msg" id="msg"></div>
+			</div>
+			<p class="note">Illustrative mini-world written by hand for this page. It is a simplified version of the wet-floor task, not a model output.</p>
+		</div>
+	</div>
+
+	<div class="block">
+		<p class="eyebrow">Research Questions</p>
+		<div class="themes">
+			<article><span>RQ1</span><h3>Build</h3><p>How often can a model generate a causally consistent world? The goal must be reachable, the required states present, and every stated relation must really constrain play.</p></article>
+			<article><span>RQ2</span><h3>Extend</h3><p>Can a model add new requests and keep the old rules? Requests are added in parallel, each to the same initial world, or in series, each on top of the last. A rule stays in force unless a request explicitly revises it.</p></article>
+			<article><span>RQ3</span><h3>Self-Improve</h3><p>Can self-evolution close the gap? For example, with recursive self-improvement (RSI), the model reads the verifier's counterexamples and revises its own worlds, prompts or tools. We measure whether rule-keeping improves from one iteration to the next.</p></article>
+		</div>
+	</div>
+
+	<div class="block" id="demo-2-views">
+		<p class="eyebrow">Views</p>
+		<h3>Four Models, One Broken Rule.</h3>
+		<p>One request from the serial run that every model got wrong. Each model first built the body shop and passed. Then it was asked to add a robot paint cell. All four cells paint a bare panel in one step, so the panel is never primed. Pick a model to see its code, which rules it broke, and the steps that break them.</p>
+		<div class="tabs" id="models"></div>
+		<div class="case">
+			<div>
+				<p class="label">Round 1 · The World</p>
+				<p>A body shop. One bare car panel stands on a trestle, and an extractor fan runs in the roof when it is switched on. <b>Goal:</b> the panel is painted.</p>
+				<p class="label">Round 1 · How It Is Solved</p>
+				<p class="trace"><span>panel bare · extractor off</span> → switch extractor on → <span>bare · on</span> → spray (primer) → <span>primed · on</span> → spray (paint) → <span>painted · on</span></p>
+				<p class="label">Rules from Round 1 (Must Still Hold in Round 2)</p>
+				<ol class="rules" id="rules"></ol>
+			</div>
+			<div>
+				<p class="label">Round 2 · New Request</p>
+				<p class="quote">“Add a robot paint cell: a bare panel loaded into it comes out painted.”</p>
+				<p class="label" id="code-label"></p>
+				<pre id="code"></pre>
+				<p class="label">Where It Breaks</p>
+				<p class="trace" id="trace"></p>
+				<p id="why"></p>
+			</div>
+		</div>
+		<div class="cards three views">
+			<article class="card">
+				<div class="game" data-k="2d"><iframe src="causal/2d.html#embed" title="Top-Down 2D View"></iframe></div>
+				<div class="meta"><span>View 1</span><span>2D</span></div>
+				<h3>Top-Down 2D</h3>
+				<p>The world on a 2D map.</p>
+			</article>
+			<article class="card">
+				<div class="game" data-k="3d"><iframe src="causal/3d.html#embed" title="Overhead 3D View"></iframe></div>
+				<div class="meta"><span>View 2</span><span>3D</span></div>
+				<h3>Overhead 3D</h3>
+				<p>The same world in 3D, seen from above.</p>
+			</article>
+			<article class="card">
+				<div class="game" data-k="fp"><iframe src="causal/fp.html#embed" title="First-Person 3D View"></iframe></div>
+				<div class="meta"><span>View 3</span><span>3D</span></div>
+				<h3>First-Person 3D</h3>
+				<p>The same world through the player's eyes.</p>
+			</article>
+		</div>
+		<div class="bar">
+			<div class="checks" id="state"></div>
+			<div class="actions" id="game-actions"></div>
+			<p class="msg" id="verdict"></p>
+		</div>
+		<p class="note">Worlds written by the models in the serial run (paint_shop, round 2). The three views play the same world and stay in step. Click a view, then use the buttons, or arrows / WASD to walk and E to act.</p>
+	</div>
+
+	<div class="block" id="demo-2-results">
+		<p class="eyebrow">Results</p>
+		<div class="rq" id="demo-2-rq2">
+			<h3>RQ2 · Extend</h3>
+			<p>We test two settings.</p>
+			<p><b>Parallel.</b> Different requests are each added once, independently, to the same initial world.</p>
+			<p><b>Serial.</b> Requests pile up over many rounds, each built on the previous world. We track the first broken rule, new breaks per round, and whether earlier features survive.</p>
+			<div class="tiles" id="rq2-tiles"></div>
+
+			<h4>Parallel vs Serial</h4>
+			<p>The same ten requests per scene, asked one at a time on the round-1 world (parallel) or stacked one on another (serial). Every model is less often correct and breaks more rules once the requests stack: gpt-6-luna goes from 93% to 61% correct, and from 4% to 23% of requests breaking a rule.</p>
+			<div class="keys"><span><i class="fill par"></i>Parallel</span><span><i class="fill ser"></i>Serial</span></div>
+			<div class="charts">
+				<div class="chart">
+					<h5>Correct Rate</h5>
+					<p>Requests after which every feature works and every round-1 rule holds, over all 300 requests. Higher is better.</p>
+					<div class="hb" id="rq2-cr"></div>
+				</div>
+				<div class="chart">
+					<h5>Violation Rate</h5>
+					<p>Requests after which a round-1 rule is broken, over all 300 requests. Lower is better.</p>
+					<div class="hb" id="rq2-vr"></div>
+				</div>
+			</div>
+
+			<h4>Serial, Round by Round</h4>
+			<p>The two stronger models start near 80% correct and fall to under half by round 10. They keep earlier features: what they lose is the old rules. The two weaker models rarely get a usable world past round 1.</p>
+			<div class="keys" id="rq2-keys"></div>
+			<div class="charts lines">
+				<div class="chart"><h5>Correct Rate at Round k</h5><p>Scenes where, after round k, every feature added so far works and every rule holds, over all 30 scenes.</p><div id="rq2-l-correct"></div></div>
+				<div class="chart"><h5>Violation Rate up to Round k</h5><p>Requests 1 to k that left a rule broken, over all requests 1 to k. The value at round 10 is the run's overall rate.</p><div id="rq2-l-violating_cum"></div></div>
+				<div class="chart"><h5>Retention Rate at Round k</h5><p>Scenes where every feature from rounds 1 to k−1 still works, over the scenes that can be judged at round k.</p><div id="rq2-l-kept"></div></div>
+				<div class="chart"><h5>Scenes Correct in Every Round So Far</h5><p>Scenes whose rounds 1 to k are all correct, over all 30 scenes. Once a scene slips, it stays out.</p><div id="rq2-l-survival"></div></div>
+			</div>
+
+			<!-- <h4>All Numbers</h4>
+			<div class="scroll"><table class="sum" id="rq2-table"></table></div>
+			<p class="note">v8 eval, 30 scenes × 10 requests per model, one sample, low reasoning effort. Round 1 is not retried: if a model's round-1 world is not admitted, its ten requests count as not judged, and so neither correct nor violating. The parallel runs build their own round-1 worlds, so their round-1 admissions can differ from the serial runs'.</p> -->
+		</div>
+	</div>
+
+	<div class="block" id="demo-2-evolution">
+		<p class="eyebrow">Self-Evolution</p>
+		<h3>A Benchmark That Makes Itself Harder.</h3>
+		<p>One agent generates new scenes from feedback; another tries to solve them. To be added.</p>
+	</div>
+
+	<div class="tip" id="tip" hidden></div>
+
+	<script>
+		// Three versions of the same world. `moto` adds the round-2 feature; `leaky` lets it bypass the round-1 rule.
+		const versions = [
+			{ tab: 'Round 1 · build', label: 'Round 1 · goal', moto: false,
+			  request: 'A road, wet from a burst pipe, separates the near side from the far side. A truck waits on the near side. Goal: the truck is on the far side.' },
+			{ tab: 'Round 2 · rule kept', label: 'Round 2 · new request', moto: true,
+			  request: 'Add a motorcycle that can be ridden across the road. Must make possible: the motorcycle is on the far side.' },
+			{ tab: 'Round 2 · rule broken', label: 'Round 2 · new request', moto: true, leaky: true,
+			  request: 'Add a motorcycle that can be ridden across the road. Must make possible: the motorcycle is on the far side.' },
+		];
+		const $ = (id) => document.getElementById(id), other = (side) => (side === 'near' ? 'far' : 'near');
+		let v, s;
+
+		// Each action: [label, is it available, what it does, is it new in round 2].
+		const actions = () => [
+			['Dry the road', !s.dried, () => { s.dried = true; s.msg = 'The road is dry.'; }],
+			['Drive the truck across', true, () => {
+				if (!s.dried) return (s.msg = 'Blocked: the road is wet, so the truck cannot cross.');
+				s.truck = other(s.truck); s.msg = 'The truck is on the ' + s.truck + ' side.';
+			}],
+			['Ride the motorcycle across', v.moto, () => {
+				if (!s.dried && !v.leaky) return (s.msg = 'Blocked: the road is wet, so the motorcycle cannot cross either.');
+				s.moto = other(s.moto);
+				if (!s.dried) s.broken = true;
+				s.msg = s.dried ? 'The motorcycle is on the ' + s.moto + ' side.' : 'The motorcycle crossed a wet road. The new feature works, but the round-1 rule no longer holds.';
+			}, true],
+		];
+
+		function render() {
+			$('tabs').innerHTML = versions.map((x, i) => `<button aria-pressed="${x === v}" data-i="${i}">${x.tab}</button>`).join('');
+			$('request-label').textContent = v.label;
+			$('request').textContent = v.request;
+			for (const side of ['near', 'far']) {
+				$(side).querySelectorAll('.item').forEach((el) => el.remove());
+				$(side).insertAdjacentHTML('afterbegin', (v.moto && s.moto === side ? '<div class="item">Motorcycle</div>' : '') + (s.truck === side ? '<div class="item truck">Truck</div>' : ''));
+			}
+			$('floor').classList.toggle('wet', !s.dried);
+			$('floor').querySelector('small').textContent = s.dried ? 'Road · dry' : 'Road · wet';
+			$('actions').innerHTML = actions().map(([label, ok, , isNew], i) => (ok ? `<button data-a="${i}"${isNew ? ' class="new"' : ''}>${label}</button>` : '')).join('') + '<button class="reset" data-a="reset">Reset</button>';
+			const done = (v.moto ? s.moto : s.truck) === 'far';
+			$('checks').innerHTML = `<span class="status${done ? '' : ' off'}">${v.moto ? 'New feature' : 'Goal'}: ${done ? 'reached' : 'not yet'}</span>`
+				+ `<span class="status${s.broken ? ' bad' : ''}">Rule: ${s.broken ? 'broken' : 'holds'}</span>`;
+			$('msg').textContent = s.msg;
+		}
+		function start(i) {
+			v = versions[i];
+			s = { truck: 'near', moto: 'near', dried: false, broken: false, msg: v.moto ? 'Try riding the motorcycle across without drying the road.' : 'Try driving the truck across without drying the road.' };
+			render();
+		}
+		$('tabs').onclick = (e) => e.target.dataset.i && start(+e.target.dataset.i);
+		$('actions').onclick = (e) => {
+			const a = e.target.dataset.a;
+			if (a === 'reset') return start(versions.indexOf(v));
+			if (a) { actions()[a][2](); render(); }
+		};
+		new ResizeObserver(() => parent.postMessage({ demoHeight: Math.ceil(document.body.getBoundingClientRect().height) }, '*')).observe(document.body); // lets the host page size the iframe; rounded up, never short
+		start(0);
+
+		// Views. Each view page reports its world index and action trail after every step; we pass it on to the other two,
+		// and draw one action bar from the menu of the view in use. `idx` is the world's place in the pages' world list.
+		// The four round-1 rules, as the verifier checks them (v8 transition rules), and why each holds or breaks per model.
+		const RULES = [
+			{ id: 'fumes_are_final', text: 'Spraying with the extractor off lays no paint and fills the shop with fumes; once the shop is full of fumes, nothing more can be done.' },
+			{ id: 'extractor_first', text: 'The panel can become painted only after the extractor has been switched on.' },
+			{ id: 'no_paint_without_extraction', text: 'No paint ever goes onto the panel while the extractor is off.' },
+			{ id: 'primed_before_painted', text: 'A panel is primed before it is painted.' },
+		];
+		const FUMES_OK = 'Holds: the cell makes no fumes, and spraying with the extractor off still ends the game.';
+		const PRIMER_BAD = 'Broken: the cell takes a bare panel and returns it painted, so it is never primed.';
+		const EXTRACTOR_BAD = {
+			extractor_first: 'Broken: the cell runs with the extractor off, so the panel is painted without the extractor ever being on.',
+			no_paint_without_extraction: 'Broken: the cell paints the panel while the extractor is off.',
+		};
+		const FIX = 'A cell that keeps the rules would run only with the extractor on and prime the panel before painting it, so a bare panel still comes out painted.';
+		// `idx` is the world's place in the view pages' world list; `path` is the verifier's counterexample.
+		// `code` is the model's own code for the new action, cut down; lines starting with ! break the rules.
+		const models = [
+			{ name: 'gpt-6-luna', idx: 1, path: ['load_panel_into_cell'],
+			  reasons: { fumes_are_final: FUMES_OK, ...EXTRACTOR_BAD, primed_before_painted: PRIMER_BAD },
+			  trace: [['bare', 'off'], 'load panel into cell', ['painted', 'off']],
+			  why: 'The cell is offered whenever the panel is bare, with no check on the extractor, and turns the panel painted in one step. It skips both earlier steps, so three rules break at once. ' + FIX,
+			  code: ['def actions(self, state: dict) -> list[str]:', '    …',
+				'!    if state["panel.state"] == "bare" and not state["cell.used"]:', '        actions.append("load_panel_into_cell")',
+				'def step(self, state: dict, action: str) -> dict:', '    …',
+				'    elif action == "load_panel_into_cell":', '!        new_state["panel.state"] = "painted"', '        new_state["cell.used"] = True'] },
+			{ name: 'deepseek-v4-flash', idx: 12, path: ['toggle_extractor', 'load_cell'],
+			  reasons: { fumes_are_final: FUMES_OK, extractor_first: 'Holds: the cell is offered only while the extractor is on.',
+			             no_paint_without_extraction: 'Holds: for the same reason, the cell never paints with the extractor off.', primed_before_painted: PRIMER_BAD },
+			  trace: [['bare', 'off'], 'toggle extractor', ['bare', 'on'], 'load cell', ['painted', 'on']],
+			  why: 'This model did guard the cell with the extractor, and its comment even quotes that rule, so the two extractor rules hold. But it followed the request word for word: a bare panel goes in and a painted one comes out, so the panel is never primed. A cell that keeps the rules would prime the panel before painting it.',
+			  code: ['def actions(self, state: dict) -> list[str]:', '    …',
+				'    # The robot paint cell can be loaded with a bare panel and', '    # turns it painted. No paint ever goes onto the panel while', '    # the extractor is off, so the cell only runs with it on.',
+				'    if (', '        not state["cell.used"]', '!        and state["panel.state"] == "bare"', '        and state["extractor.on"]', '    ):', '        actions.append("load_cell")',
+				'def step(self, state: dict, action: str) -> dict:', '    …',
+				'    if action == "load_cell":', '!        new_state["panel.state"] = "painted"', '        new_state["cell.used"] = True'] },
+			{ name: 'gpt-5-nano', idx: 23, path: ['use_robot_paint_cell'],
+			  reasons: { fumes_are_final: FUMES_OK, ...EXTRACTOR_BAD, primed_before_painted: PRIMER_BAD },
+			  trace: [['bare', 'off'], 'use robot paint cell', ['painted', 'off']],
+			  why: 'The cell is always offered. Its only checks are that the panel is bare and the cell unused, so it paints with the extractor off and skips the primer. ' + FIX,
+			  code: ['def actions(self, state: dict) -> list[str]:', '    …',
+				'!    acts.append(\'use_robot_paint_cell\')',
+				'def step(self, state: dict, action: str) -> dict:', '    …',
+				'    elif action == \'use_robot_paint_cell\':',
+				'!        if not new_state.get(\'cell.used\', False) and new_state[\'panel.state\'] == \'bare\':',
+				'!            new_state[\'panel.state\'] = \'painted\'', '            new_state[\'cell.used\'] = True'] },
+			{ name: 'gpt-4o-mini', idx: 34, path: ['use_robot_paint_cell'],
+			  reasons: { fumes_are_final: FUMES_OK, ...EXTRACTOR_BAD, primed_before_painted: PRIMER_BAD },
+			  trace: [['bare', 'off'], 'use robot paint cell', ['painted', 'off']],
+			  why: 'The cell is offered whenever the panel is bare, with no check on the extractor, and turns the panel painted in one step. ' + FIX,
+			  code: ['def actions(self, state: dict) -> list[str]:', '    …',
+				'!    if not state[\'cell.used\'] and state[\'panel.state\'] == \'bare\':', '        actions.append(\'use_robot_paint_cell\')',
+				'def step(self, state: dict, action: str) -> dict:', '    …',
+				'    elif action == \'use_robot_paint_cell\':', '        if new_state[\'panel.state\'] == \'bare\' and not new_state[\'cell.used\']:',
+				'!            new_state[\'panel.state\'] = \'painted\'', '            new_state[\'cell.used\'] = True'] },
+		];
+		const esc = (t) => String(t).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]);
+		const broken = (x) => RULES.filter((r) => x.reasons[r.id].startsWith('Broken')).map((r) => 'R' + (RULES.indexOf(r) + 1));
+		function drawCase() {
+			$('rules').innerHTML = RULES.map((r, i) => {
+				const bad = model.reasons[r.id].startsWith('Broken');
+				return `<li class="${bad ? 'broken' : ''}"><b>R${i + 1}</b><span>${r.text}</span><span class="status${bad ? ' bad' : ''}">${bad ? 'broken' : 'holds'}</span><small>${model.reasons[r.id]}</small></li>`;
+			}).join('');
+			$('code-label').textContent = `Round 2 · ${model.name}'s code for the cell (marked lines break the rules)`;
+			$('code').innerHTML = model.code.map((l) => (l[0] === '!' ? `<mark>${esc(l.slice(1))}</mark>` : l.trim() === '…' ? `<i>${l}</i>` : esc(l))).join('\n');
+			$('trace').innerHTML = model.trace.map((t, i) => (typeof t === 'string' ? t
+				: `<span${i === model.trace.length - 1 ? ' class="bad"' : ''}>${i === 0 ? 'panel ' : ''}${t[0]} · ${i === 0 ? 'extractor ' : ''}${t[1]}</span>`)).join(' → ')
+				+ ` <span class="bad">${broken(model).join(', ')} broken</span>`;
+			$('why').textContent = model.why;
+		}
+		const views = {};
+		document.querySelectorAll('.game').forEach((el) => (views[el.dataset.k] = el));
+		const menus = {}, plain = (t) => String(t).replace(/_/g, ' ');
+		let model = models[0], cur = { idx: model.idx, trail: [] }, active = '2d', state = null;
+
+		const send = (k, m) => views[k].querySelector('iframe').contentWindow?.postMessage({ v8: 1, ...m }, '*');
+		const broadcast = (except) => { for (const k in views) if (k !== except) send(k, { type: 'set', idx: cur.idx, trail: cur.trail }); };
+		const same = (a, b) => a.idx === b.idx && JSON.stringify(a.trail) === JSON.stringify(b.trail);
+
+		function drawViews() {
+			$('models').innerHTML = models.map((x, i) => `<button aria-pressed="${x === model}" data-i="${i}">${x.name}</button>`).join('');
+			for (const k in views) views[k].classList.toggle('on', k === active);
+			const shown = JSON.stringify(cur.trail) === JSON.stringify(model.path);
+			$('state').innerHTML = (shown ? '<span class="status bad">Rule broken</span>' : '') + (state ? Object.entries(state).map(([k, v]) => `<span class="status off">${plain(k)}: ${v}</span>`).join('') : '')
+				+ `<span class="status off">${cur.trail.length} step${cur.trail.length === 1 ? '' : 's'}</span>`;
+			const m = menus[active];
+			$('game-actions').innerHTML = (m ? m.acts.map((a, i) => `<button data-i="${i}"${a.fresh ? ' class="new"' : ''}>${plain(a.label)}</button>`).join('') : '')
+				+ '<button class="reset" data-a="break">Show the break</button><button class="reset" data-a="reset">Reset</button>';
+			$('verdict').textContent = shown
+				? `This is the state under “Where it breaks”: the goal is reached, but ${broken(model).join(', ')} ${broken(model).length > 1 ? 'are' : 'is'} broken on the way.`
+				: (m && m.acts.length ? `At ${plain(m.title)}.` : 'Walk up to a station to see what can be done there, or press “Show the break”.');
+		}
+		function setWorld(trail) { cur = { idx: model.idx, trail }; broadcast(null); drawCase(); drawViews(); }
+
+		window.addEventListener('message', (ev) => {
+			const m = ev.data;
+			if (!m || m.v8 !== 1 || !views[m.kind]) return;
+			const k = m.kind;
+			if (m.type === 'menu') { menus[k] = m; if (k === active) drawViews(); return; }
+			if (m.type === 'focus') { active = k; drawViews(); return; }
+			if (m.type !== 'state') return;
+			const st = { idx: m.idx, trail: m.trail };
+			if (m.first || same(st, cur)) { if (!same(st, cur)) send(k, { type: 'set', idx: cur.idx, trail: cur.trail }); }
+			else { cur = st; broadcast(k); }
+			if (same(st, cur)) state = m.state;
+			drawViews();
+		});
+		$('models').onclick = (e) => { if (e.target.dataset.i) { model = models[+e.target.dataset.i]; setWorld([]); } };
+		$('game-actions').onclick = (e) => {
+			const b = e.target.closest('button');
+			if (!b) return;
+			if (b.dataset.a === 'break') return setWorld(model.path);
+			if (b.dataset.a === 'reset') return setWorld([]);
+			send(active, { type: 'act', i: +b.dataset.i });
+		};
+		for (const k in views) views[k].addEventListener('pointerdown', () => { active = k; drawViews(); });
+		drawCase();
+		drawViews();
+	</script>
+	<script src="causal/rq2.js"></script>
+	<script src="causal/results.js"></script>
+</body>
+</html>

@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Demo 1 · Puzzle Blueprints</title>
+	<link rel="stylesheet" href="../style.css" />
+	<style>
+		/* Demo 1. Embedded in ../index.html through an iframe; also opens on its own for debugging. */
+		/* The host sizes the iframe to fit (see the ResizeObserver below), so the page never needs its own scrollbar. Without this,
+		   a fraction of a pixel of overflow shows a scrollbar, the width shrinks, the text reflows, the height changes, and the frame jitters. */
+		html { overflow: hidden; }
+		body { display: flow-root; background: none; }
+		.mono { font: 0.74rem/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+		.label { margin: 0 0 8px; color: var(--ink-soft); font-size: 0.64rem; font-weight: 700; letter-spacing: 0.11em; text-transform: uppercase; }
+		.note { margin: 14px 0 0; color: var(--ink-soft); font-size: 0.72rem; }
+
+		/* Spec + blueprint */
+		.figure { margin-top: 28px; }
+		.pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px; margin-top: 28px; align-items: start; }
+		.spec { margin: 0; padding: 16px 18px; max-height: 470px; overflow: auto; border: 1px solid var(--line); background: var(--paper); white-space: pre-wrap; overflow-wrap: anywhere; }
+		.spec.plan { white-space: pre; overflow-wrap: normal; line-height: 1.2; }
+		.sheet { overflow-x: auto; }
+		.bp { display: block; max-width: none; font: 12.5px var(--sans); }
+		.bp-band { fill: var(--paper); stroke: var(--line); }
+		.bp-label { fill: var(--navy); font-weight: 700; dominant-baseline: middle; }
+		.bp-node rect { fill: #fff; stroke: rgba(11, 28, 48, 0.28); }
+		.bp-node.bp-door rect { fill: var(--foam); stroke: var(--sea); }
+		.bp-node text { fill: var(--ink-soft); }
+		.bp-node .bp-title { fill: var(--ink); font-weight: 650; }
+		.bp-edge { fill: none; stroke-width: 1.5; stroke-linejoin: round; }
+		.bp-edge.bp-room { stroke: #8494a8; }
+		.bp-edge.bp-item { stroke: var(--sea); }
+		.bp-head-room { fill: #8494a8; }
+		.bp-head-item { fill: var(--sea); }
+		.legend-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; margin-top: 10px; color: var(--ink-soft); font-size: 0.72rem; }
+		.legend-row i { display: inline-block; width: 20px; height: 0; margin-right: 6px; vertical-align: middle; border-top: 1.5px solid #8494a8; }
+		.legend-row i.item { border-color: var(--sea); }
+		.legend-row b { display: inline-block; width: 18px; height: 12px; margin-right: 6px; vertical-align: middle; border: 1px solid rgba(11, 28, 48, 0.28); border-radius: 3px; background: #fff; }
+		.legend-row b.door { border-color: var(--sea); background: var(--foam); }
+
+		/* Minecraft viewer */
+		.mc { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr); gap: 26px; margin-top: 28px; align-items: stretch; } /* the viewer grows to the height of the solution column */
+		.viewer { position: relative; min-height: 560px; overflow: hidden; border: 1px solid var(--line); touch-action: none; background:
+			linear-gradient(rgba(11, 28, 48, 0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(11, 28, 48, 0.06) 1px, transparent 1px), var(--paper-deep); background-size: 28px 28px; }
+		.viewer canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; cursor: grab; } /* absolute, so the canvas never props the row open */
+		.viewer canvas:active { cursor: grabbing; }
+		.pins { position: absolute; inset: 0; pointer-events: none; }
+		.pin { position: absolute; transform: translate(-50%, -100%); padding: 2px 7px; border: 1px solid var(--line); border-radius: 999px; background: rgba(243, 246, 250, 0.92); color: var(--ink); font-size: 0.64rem; font-weight: 680; white-space: nowrap; transition: opacity 160ms; }
+		.pin.room { border: 0; background: none; color: var(--navy); font-size: 0.7rem; font-weight: 760; letter-spacing: 0.08em; text-transform: uppercase; transform: translate(-50%, -50%); }
+		.pin.dim { opacity: 0.22; }
+		.pin.on { z-index: 1; color: var(--paper); background: var(--navy); border-color: var(--navy); }
+		.pins.hide .pin:not(.on):not(.room):not(.stepno) { display: none; }
+		.pins.route .pin.mech:not(.on) { opacity: 0.35; }
+		.pin.stepno { min-width: 20px; padding: 1px 6px; border-color: var(--sea); color: var(--paper); background: var(--sea); text-align: center; font-variant-numeric: tabular-nums; }
+		.tools { position: absolute; top: 12px; right: 12px; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+		.tools button, .steps button { font: inherit; cursor: pointer; color: var(--ink); }
+		.tools button { min-width: 32px; padding: 5px 11px; border: 1px solid var(--line); border-radius: 999px; background: rgba(243, 246, 250, 0.92); font-size: 0.72rem; font-weight: 680; }
+		.tools button[aria-pressed='true'] { color: var(--paper); background: var(--ink); border-color: var(--ink); }
+		.viewer small { position: absolute; left: 14px; bottom: 10px; color: var(--ink-soft); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; pointer-events: none; }
+		.steps { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
+		.steps button { display: grid; grid-template-columns: 26px 1fr; gap: 4px 10px; width: 100%; padding: 11px 6px; border: 0; border-bottom: 1px solid var(--line); background: none; text-align: left; }
+		.steps button:hover { background: rgba(213, 229, 244, 0.5); }
+		.steps button[aria-pressed='true'], .steps button.now { background: var(--foam); }
+		.steps button.done b { color: var(--paper); background: var(--sea); }
+		.steps b { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; font: 650 0.72rem/1 var(--sans); font-variant-numeric: tabular-nums; }
+		.steps b { color: var(--sea); font-family: var(--serif); font-weight: 400; }
+		.steps span { font-size: 0.84rem; line-height: 1.35; }
+		.steps code { grid-column: 2; display: block; color: var(--ink-soft); font: 0.66rem/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; word-break: break-all; }
+
+		/* Statistics */
+		.tiles { display: grid; grid-template-columns: repeat(5, 1fr); margin-top: 28px; border-top: 1px solid var(--line); }
+		.tiles div { padding: 20px 16px 22px 20px; border-right: 1px solid var(--line); }
+		.tiles div:first-child { padding-left: 0; }
+		.tiles div:last-child { border-right: 0; }
+		.tiles strong { display: block; font-size: clamp(1.7rem, 3vw, 2.4rem); font-weight: 620; letter-spacing: -0.03em; line-height: 1.1; }
+		.tiles span { display: block; margin-top: 6px; color: var(--ink-soft); font-family: var(--serif); font-size: 0.86rem; line-height: 1.35; }
+		.charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 44px 40px; margin-top: 40px; }
+		.chart h4 { margin: 0 0 4px; font-size: 0.98rem; font-weight: 650; letter-spacing: -0.01em; }
+		.chart > p { margin: 0 0 16px; color: var(--ink-soft); font-family: var(--serif); font-size: 0.92rem; line-height: 1.4; }
+		.hbars { display: grid; grid-template-columns: max-content 1fr; gap: 6px 12px; align-items: center; font-size: 0.78rem; }
+		.hbars .group { grid-column: 1 / -1; margin-top: 8px; color: var(--ink-soft); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.11em; text-transform: uppercase; }
+		.hbars .group:first-child { margin-top: 0; }
+		.hbars .track { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 3px 0; }
+		.hbars .bar { height: 16px; border-radius: 0 4px 4px 0; background: var(--sea); }
+		.hbars .val { color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+		.cols { display: flex; align-items: flex-end; gap: 2px; height: 170px; padding-top: 18px; border-bottom: 1px solid var(--line); }
+		.cols div { position: relative; flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; }
+		.cols .bar { width: min(24px, 70%); border-radius: 4px 4px 0 0; background: var(--sea); }
+		.cols .val { position: absolute; color: var(--ink-soft); font-size: 0.7rem; padding-bottom: 3px; font-variant-numeric: tabular-nums; }
+		.axis { display: flex; gap: 2px; margin-top: 6px; color: var(--ink-soft); font-size: 0.7rem; }
+		.axis span { flex: 1; text-align: center; }
+		.axis-title { margin-top: 2px; color: var(--ink-soft); font-size: 0.66rem; text-align: center; }
+		.heat { display: grid; grid-template-columns: max-content repeat(7, 1fr); gap: 2px; font-size: 0.74rem; }
+		.heat .h { color: var(--ink-soft); text-align: center; font-size: 0.7rem; }
+		.heat .r { padding-right: 10px; color: var(--ink-soft); align-self: center; }
+		.heat .c { display: grid; place-items: center; height: 38px; font-variant-numeric: tabular-nums; }
+		.heat .c.none { background: repeating-linear-gradient(135deg, transparent 0 5px, rgba(11, 28, 48, 0.06) 5px 6px); }
+		.ramp { display: flex; align-items: center; gap: 8px; margin-top: 10px; color: var(--ink-soft); font-size: 0.68rem; }
+		.ramp i { width: 120px; height: 8px; }
+		.tip { position: fixed; z-index: 10; padding: 6px 10px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); font-size: 0.74rem; line-height: 1.35; pointer-events: none; box-shadow: 0 6px 18px rgba(11, 28, 48, 0.12); }
+		.scroll { overflow-x: auto; }
+		table.baked { width: 100%; border-collapse: collapse; font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+		table.baked th, table.baked td { padding: 7px 8px; border-bottom: 1px solid var(--line); text-align: right; }
+		table.baked th { color: var(--ink-soft); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+		table.baked th:first-child, table.baked td:first-child { text-align: left; padding-left: 0; }
+		table.baked tr.current td { font-weight: 700; }
+
+		/* Bundle format */
+		.files { display: grid; grid-template-columns: max-content 1fr; gap: 0 22px; margin-top: 24px; border-top: 1px solid var(--line); }
+		.files dt, .files dd { margin: 0; padding: 10px 0; border-bottom: 1px solid var(--line); }
+		.files dt { font: 0.76rem/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--navy); }
+		.files dd { color: var(--ink-soft); font-family: var(--serif); font-size: 0.95rem; line-height: 1.45; }
+
+		@media (max-width: 900px) {
+			.pair, .mc, .charts { grid-template-columns: minmax(0, 1fr); }
+			.viewer { min-height: 0; height: 440px; }
+			.tiles { grid-template-columns: repeat(2, 1fr); }
+			.tiles div, .tiles div:first-child { padding-left: 0; border-right: 0; border-bottom: 1px solid var(--line); }
+		}
+		@media (max-width: 560px) {
+			.files { grid-template-columns: 1fr; }
+			.files dt { padding-bottom: 0; border-bottom: 0; }
+		}
+	</style>
+</head>
+<body>
+	<div class="section-head">
+		<p class="eyebrow">Demo 1 · Puzzle Blueprints</p>
+		<h2>From Words to Puzzle Blueprints.</h2>
+		<p class="lede">A model designs a puzzle and writes it out as a blueprint that can be built block by block in Minecraft.</p>
+	</div>
+
+	<div class="block">
+		<!-- <p class="eyebrow">One Game, Three Forms</p>
+		<h3>A Spec, a Blueprint, a World.</h3> -->
+		<p class="eyebrow">The Blueprint for the Game</p>
+		<!-- <h3>What Depends on What.</h3> -->
+		<h3>The Dependency Graph.</h3>
+		<p>A game is a short YAML spec: rooms, the doors between them, what opens each door, and boxes to solve along the way. It is drawn as a blueprint, a graph of what depends on what, and then built into a Minecraft Java world, with a datapack that makes the mechanisms work. Below is game <span id="game-name"></span>.</p>
+		<div class="figure">
+			<p class="label">Blueprint · Drawn from games/<span id="bp-file"></span>/layout.json</p>
+			<div class="sheet" id="bp"></div>
+			<div class="legend-row">
+				<span><i class="room"></i>door that must be open first</span>
+				<span><i class="item"></i>key or item it needs</span>
+				<span><b class="door"></b>door</span>
+				<span><b></b>key or box</span>
+			</div>
+		</div>
+		<!-- Spec and floor plan, hidden for now
+		<div class="pair">
+			<div>
+				<p class="label">Spec · game_specs/<span id="spec-file"></span></p>
+				<pre class="spec mono" id="spec"></pre>
+			</div>
+			<div>
+				<p class="label">Floor Plan · games/<span id="plan-file"></span>/layout.txt</p>
+				<pre class="spec mono plan" id="plan"></pre>
+				<p class="note">#&nbsp;wall · D&nbsp;door · S&nbsp;spawn · 0–9&nbsp;room · L&nbsp;lever · B&nbsp;button · ~&nbsp;tripwire · G&nbsp;glass · M&nbsp;materials chest · C&nbsp;box · K&nbsp;keyhole · $&nbsp;loot chest</p>
+			</div>
+		</div>
+		-->
+	</div>
+
+	<div class="block">
+		<p class="eyebrow">In Minecraft</p>
+		<h3>The Same Game, Block by Block.</h3>
+		<p>The baked world, read straight from its region files and drawn with the vanilla block textures. Drag to turn it, use + and − to zoom. Pick a step of the solution to see where it happens, or press Solution to watch the whole route, step by step.</p>
+		<div class="mc">
+			<div class="viewer" id="viewer">
+				<div class="pins" id="pins"></div>
+				<div class="tools">
+					<button type="button" id="ceiling" aria-pressed="false" title="Show the sea-lantern ceilings">Ceiling</button>
+					<button type="button" id="labels" aria-pressed="true" title="Show labels">Labels</button>
+					<button type="button" id="solution" aria-pressed="false" title="Walk the solution step by step">Solution</button>
+					<button type="button" id="zoom-in" aria-label="Zoom in">+</button>
+					<button type="button" id="zoom-out" aria-label="Zoom out">−</button>
+					<button type="button" id="reset">Reset</button>
+				</div>
+				<small id="viewer-caption"></small>
+			</div>
+			<div>
+				<p class="label">Solution · answer.txt</p>
+				<ol class="steps" id="steps"></ol>
+				<p class="note" id="steps-note"></p>
+			</div>
+		</div>
+	</div>
+
+	<div class="block">
+		<p class="eyebrow">The Batch</p>
+		<h3>230 Games.</h3>
+		<p>One batch (seed 123) holds a spec and a blueprint for every game. Ten of them have been baked into worlds so far.</p>
+		<div class="tiles" id="tiles"></div>
+		<div class="charts">
+			<div class="chart">
+				<h4>Mechanism Types</h4>
+				<p>How often each kind of door and box appears, over all 230 games.</p>
+				<div class="hbars" id="types"></div>
+			</div>
+			<div class="chart">
+				<h4>Longest Dependency Chain</h4>
+				<p>Mean number of mechanisms that must be solved one after another, by layout shape and room count.</p>
+				<div class="heat" id="heat"></div>
+				<div class="ramp"><span id="ramp-lo"></span><i id="ramp"></i><span id="ramp-hi"></span></div>
+			</div>
+			<!-- Hidden for now (to be revised): mechanisms per game, baked worlds.
+			<div class="chart">
+				<h4>Mechanisms per Game</h4>
+				<p>Doors plus boxes. Every game has one door per room after the first.</p>
+				<div class="cols" id="mechs"></div>
+				<div class="axis" id="mechs-axis"></div>
+				<div class="axis-title">mechanisms</div>
+			</div>
+			<div class="chart">
+				<h4>Baked Worlds</h4>
+				<p>Each built world comes with a stored answer, a list of bot commands. All ten are marked solvable.</p>
+				<div class="scroll"><table class="baked" id="baked"></table></div>
+			</div>
+			-->
+		</div>
+	</div>
+
+	<!-- <div class="block">
+		<p class="eyebrow">Format</p>
+		<h3>What the Bundle Holds.</h3>
+		<p>The files behind this page, from the seed 123 bundle. To play a game, a Minecraft server loads its world and a Mineflayer bot connects to it. This page reads the files directly and needs neither.</p>
+		<dl class="files">
+			<dt>game_specs/&lt;game&gt;.yaml</dt><dd>The spec: layout shape, room count, edges with compass directions, gates (door type, its trigger room or key), boxes, and keys with where each one comes from. A decoy game hands out one extra key that opens nothing.</dd>
+			<dt>blueprints/&lt;game&gt;.html</dt><dd>The blueprint drawing, one SVG per game, plus an index of all 230.</dd>
+			<dt>games/&lt;game&gt;/layout.json</dt><dd>The placed game: room bounds, the spawn point, and exact block coordinates for every door, trigger, keyhole, box, chest and glass target. It also holds the dependency edges and an ASCII floor plan (<span class="mono">layout.txt</span>).</dd>
+			<dt>games/&lt;game&gt;/answer.json</dt><dd>The solution: ordered steps as bot commands (<span class="mono">!goToCoordinates</span>, <span class="mono">!activate</span>, <span class="mono">!takeFromChestAt</span>, <span class="mono">!craftRecipe</span>, …), a solvable flag, and named object locations.</dd>
+			<dt>games/&lt;game&gt;/world/</dt><dd>The Minecraft 1.21.4 world: <span class="mono">level.dat</span> and <span class="mono">region/*.mca</span> hold a flat map with the rooms built on it. The datapack in <span class="mono">data/mech/function/</span> runs the mechanisms every tick and opens and closes doors.</dd>
+			<dt>resource_pack/</dt><dd>The block palette (<span class="mono">style.yaml</span>) and an optional texture pack.</dd>
+			<dt>viewer/</dt><dd>A Mineflayer + prismarine-viewer launcher for watching a bot inside a running server.</dd>
+		</dl>
+	</div> -->
+
+	<div class="tip" id="tip" hidden></div>
+
+	<script src="../vendor/three.min.js"></script>
+	<script src="../vendor/OrbitControls.js"></script>
+	<script src="blueprint/world.js"></script>
+	<script src="blueprint/stats.js"></script>
+	<script src="blueprint/viewer.js"></script>
+	<script>
+		new ResizeObserver(() => parent.postMessage({ demoHeight: Math.ceil(document.body.getBoundingClientRect().height) }, '*')).observe(document.body); // lets the host page size the iframe; rounded up, never short
+	</script>
+</body>
+</html>

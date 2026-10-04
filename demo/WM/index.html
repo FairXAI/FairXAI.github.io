@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta name="theme-color" content="#f3f6fa" />
+	<meta name="author" content="Jingyu Hu" />
+	<title>Code World Models — Jingyu Hu</title>
+	<link rel="preload" href="fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+	<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+	<header>
+		<div class="shell">
+			<a class="wordmark" href="#"><span class="mark">JH</span>Jingyu Hu</a>
+			<nav>
+				<a href="#overview">Overview</a>
+				<a href="#demo-1">Demo 1</a>
+				<a href="#demo-2">Demo 2</a>
+				<a class="pill" href="#contact">Contact</a>
+			</nav>
+		</div>
+	</header>
+
+	<main>
+		<section class="hero">
+			<div class="shell hero-grid">
+				<div>
+					<div class="status">Research demos · work in progress</div>
+					<p class="hero-name">Jingyu Hu</p>
+					<h1>Code World Models<br /><span class="serif">That Keep Their Rules.</span></h1>
+					<p class="lede">Language models can turn a natural-language description into an executable world: its states, actions, and rules written as code. This page collects demos of what such worlds can do, and where they go wrong.</p>
+					<div class="button-row">
+						<a class="button primary" href="#demo-1">Demo 1</a>
+						<a class="button" href="#demo-2">Demo 2</a>
+					</div>
+				</div>
+				<canvas class="pixel-sea" width="48" height="72" aria-hidden="true"></canvas>
+			</div>
+			<!-- <div class="shell proof">
+				<div><strong>Worlds as code</strong><span>Executable, so every rule can be checked</span></div>
+				<div><strong>Demo 1</strong><span>Puzzle blueprints</span></div>
+				<div><strong>Demo 2</strong><span>Causal consistency</span></div>
+				<div><strong>More</strong><span>Coming soon.</span></div>
+			</div> -->
+		</section>
+
+		<section class="section tint" id="overview">
+			<div class="shell">
+				<div class="section-head">
+					<p class="eyebrow">Overview</p>
+					<!-- <h2>One Theme, Several Demos.</h2>
+					<p class="lede">Each demo looks at a different part of building worlds with code.</p> -->
+				</div>
+				<div class="themes">
+					<article><span>00</span><h3>Worlds as Code</h3><p>Executable, so every rule can be checked.</p></article>
+					<article><span>01</span><h3><a href="#demo-1">Puzzle Blueprints</a></h3><p>A model designs a puzzle and writes it out as a blueprint that can be built in Minecraft.</p></article>
+					<article><span>02</span><h3><a href="#demo-2">Causal Consistency</a></h3><p>When a world is extended round after round, do the causal rules written into it still hold?</p></article>
+					<article><span>03</span><h3><a href="#demo-2">More Demo</a></h3><p>Coming soon.</p></article>
+					<!-- <article><span>03</span><h3><a href="#demo-2">Self-Evolution</a></h3><p>Part of demo 2: agents that make the benchmark harder by generating new scenes from feedback.</p></article> -->
+
+				</div>
+			</div>
+		</section>
+
+		<!-- Each demo is its own page under demos/, embedded here. -->
+		<section class="section" id="demo-1">
+			<div class="shell"><iframe class="demo-frame" src="demos/blueprint.html" title="Demo 1 · Puzzle Blueprints" height="300"></iframe></div>
+		</section>
+
+		<section class="section tint" id="demo-2">
+			<div class="shell"><iframe class="demo-frame" src="demos/causal.html" title="Demo 2 · Causal Consistency" height="1800"></iframe></div>
+		</section>
+
+		<section class="section sea" id="more">
+			<div class="shell">
+				<div class="section-head">
+					<p class="eyebrow">More Demos</p>
+				</div>
+				<div class="visual"><small>Demo to be added</small></div>
+			</div>
+			<svg class="waves" viewBox="0 0 1200 100" preserveAspectRatio="none" aria-hidden="true">
+				<path d="M0 34 Q150 6 300 34 T600 34 T900 34 T1200 34 T1500 34 T1800 34 T2100 34 T2400 34 V100 H0Z" />
+				<path d="M0 50 Q150 76 300 50 T600 50 T900 50 T1200 50 T1500 50 T1800 50 T2100 50 T2400 50 V100 H0Z" />
+				<path d="M0 76 Q150 56 300 76 T600 76 T900 76 T1200 76 T1500 76 T1800 76 T2100 76 T2400 76 V100 H0Z" />
+			</svg>
+		</section>
+	</main>
+
+	<footer id="contact">
+		<div class="shell">
+			<!-- <p class="title">Worlds Written as Code, Checked Rule by Rule.</p> -->
+			<div class="links"><a href="mailto:jingyu.hu@bristol.ac.uk">jingyu.hu@bristol.ac.uk</a>
+			<!-- <a href="#">GitHub</a><a href="#">Paper</a> -->
+			</div>
+			<div class="meta"><span>© 2026 Jingyu Hu</span><span>Code World Models</span></div>
+		</div>
+	</footer>
+
+	<script>
+		// Each embedded demo reports its height so its iframe never needs its own scrollbar.
+		addEventListener('message', (e) => {
+			const frame = [...document.querySelectorAll('.demo-frame')].find((f) => f.contentWindow === e.source);
+			if (frame && e.data && e.data.demoHeight) frame.height = e.data.demoHeight;
+		});
+
+		// Pixel-art sea in the hero: five wave bands from light to deep blue.
+		const sea = document.querySelector('.pixel-sea'), ctx = sea.getContext('2d'), W = sea.width, H = sea.height;
+		const blues = ['#bcd9ee', '#7fb3dc', '#2a6fb0', '#123a66', '#0b1c30'];
+		/* Gull, disabled for now.
+		const gull = [ // facing left, wings spread to both sides; the second frame lowers them
+			['#........#', '.##...###.', '..#####...', '########..', '...###....'],
+			['..........', '###....###', '..######..', '########..', '...###....'],
+		];
+		*/
+		function draw(t) {
+			ctx.clearRect(0, 0, W, H);
+			// ctx.fillStyle = blues[3];
+			// const f = Math.floor(t / 320) % 2; // the body dips as the wings rise and lifts as they push down
+			// gull[f].forEach((row, j) => [...row].forEach((p, i) => p === '#' && ctx.fillRect(33 + i, 8 - f + j, 1, 1)));
+			blues.forEach((color, k) => {
+				ctx.fillStyle = color;
+				for (let x = 0; x < W; x++) {
+					const y = Math.round(46 + k * 5.5 + 2 * Math.sin(x / (3.5 + k) + (k % 2 ? 1 : -1) * t / (700 + k * 150)));
+					ctx.fillRect(x, y, 1, H - y);
+				}
+			});
+		}
+		draw(0);
+		if (!matchMedia('(prefers-reduced-motion: reduce)').matches) setInterval(() => draw(Date.now()), 120);
+	</script>
+</body>
+</html>
