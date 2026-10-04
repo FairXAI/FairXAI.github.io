@@ -1,9 +1,8 @@
 ---
-permalink: /
+permalink: /about/
 title: "Todo"
 author_profile: true
-redirect_from: 
-  - /about/
+redirect_from:
   - /about.html
 ---
 
