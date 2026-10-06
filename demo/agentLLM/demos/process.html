@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Multi-Agent Dialogue · Prompt Policies and Process Evaluation</title>
+	<link rel="stylesheet" href="../style.css" />
+	<style>
+		/* Demo 1. Embedded in ../index.html through an iframe; also opens on its own for debugging. */
+		/* The host sizes the iframe to fit (see the ResizeObserver below), so the page never needs its own scrollbar. */
+		html { overflow: hidden; }
+		body { display: flow-root; background: none; }
+		.lede { max-width: 860px; font-size: 1.08rem; line-height: 1.48; } /* same as the paper demos' intro text on the host page */
+		.label { margin: 0 0 8px; color: var(--ink-soft); font-size: 0.81rem; font-weight: 700; letter-spacing: 0.11em; text-transform: uppercase; }
+		.note { margin: 18px 0 0; color: var(--ink-soft); font-size: 0.91rem; }
+		button { font: inherit; cursor: pointer; background: transparent; color: var(--ink); }
+
+		/* The policy, as one line of boxes. */
+		.flow { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; margin: 8px 0 0; padding: 2px; }
+		.flow > div { position: relative; padding: 14px 16px 16px; border: 1px solid var(--line); background: var(--paper); }
+		.flow > div + div { border-left: 0; }
+		.flow > div:not(:last-child)::after { content: '→'; position: absolute; right: -9px; top: 50%; z-index: 1; display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; transform: translateY(-50%); background: var(--paper-deep); color: var(--sea); font-size: 0.91rem; font-weight: 700; }
+		.flow b { display: block; margin-bottom: 4px; color: var(--sea); font-family: var(--serif); font-size: 1.1rem; font-weight: 600; }
+		.flow span { display: block; font-size: 1.01rem; font-weight: 650; }
+		.flow small { display: block; margin-top: 4px; color: var(--ink-soft); font-family: var(--serif); font-size: 1.06rem; line-height: 1.35; }
+		.flow .knob { background: var(--foam); border-color: var(--sea); }
+		.flow .knob + div { border-left: 1px solid var(--line); }
+		.flow .knob em { display: inline-block; margin-top: 8px; padding: 2px 9px; border-radius: 999px; background: var(--ink); color: var(--paper); font-size: 0.86rem; font-style: normal; font-weight: 700; }
+
+		/* The one comparison. */
+		.compare { margin-top: clamp(40px, 5vw, 60px); }
+		.lens { display: inline-flex; padding: 3px; margin: 4px 0 22px; border: 1px solid var(--line); border-radius: 999px; }
+		.lens button { padding: 7px 15px; border-radius: 999px; font-size: 0.99rem; font-weight: 680; }
+		.lens button[aria-pressed='true'] { color: var(--paper); background: var(--sea); }
+		.runs { display: grid; grid-template-columns: minmax(0, 1.7fr) repeat(2, minmax(0, 1fr)) minmax(0, 0.7fr); align-items: stretch; border-top: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+		.runs > div { display: flex; flex-direction: column; justify-content: center; padding: 13px 10px; border-bottom: 1px solid var(--line); }
+		.runs .h { color: var(--ink-soft); font-size: 0.81rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+		.runs .h.run { display: block; color: var(--ink); font-size: 0.91rem; padding-top: 18px; }
+		.runs .h.run i { display: inline-block; width: 10px; height: 10px; margin-right: 6px; border-radius: 50%; vertical-align: -1px; }
+		.runs .m b { display: block; font-size: 1.06rem; font-weight: 650; }
+		.runs .m small { color: var(--ink-soft); font-family: var(--serif); font-size: 1.01rem; line-height: 1.3; }
+		.runs .v { font-size: 1.4rem; font-weight: 620; letter-spacing: -0.02em; }
+		.runs .d, .runs .dh { align-items: flex-end; text-align: right; font-size: 1.06rem; font-weight: 650; }
+		.runs .d.same { color: var(--ink-soft); font-weight: 500; }
+		.runs .sum { background: rgba(213, 229, 244, 0.45); }
+		.runs .proc { transition: opacity 250ms; }
+		.runs.summary-only .proc { opacity: 0.12; filter: blur(1.5px); }
+		.A { background: var(--sea-light); } .B { background: var(--navy); }
+		.takeaway { margin-top: 22px; padding: 14px 18px; border-left: 3px solid var(--sea); background: rgba(213, 229, 244, 0.5); }
+		.takeaway p { margin: 0; font-family: var(--serif); font-size: 1.04rem; line-height: 1.5; }
+		@media (max-width: 860px) {
+			.flow { grid-template-columns: 1fr; }
+			.flow > div + div, .flow .knob + div { border-left: 1px solid var(--line); border-top: 0; }
+			.flow > div:not(:last-child)::after { content: '↓'; right: auto; left: 50%; top: auto; bottom: -9px; transform: translateX(-50%); }
+			.runs { grid-template-columns: 7.5em repeat(2, minmax(0, 1fr)) 3.8em; }
+			.runs .m small { display: none; }
+			.runs .m b { font-size: 0.94rem; overflow-wrap: anywhere; }
+			.runs .v { font-size: 1.1rem; }
+		}
+	</style>
+</head>
+<body>
+	<div class="section-head">
+		<p class="eyebrow">Prompt Policies · Multi-Agent Systems · Process Evaluation</p>
+		<h3 style="margin-bottom:24px;font-size:clamp(1.25rem,2.2vw,1.65rem)">Multi-Agent Dialogue</h3>
+		<p class="lede">Our AAMAS 2026 work treats a multi-agent dialogue as a policy: each agent's state becomes a prompt, and the prompt is the action. Change one part of that policy and a summary score can stay exactly where it was while the conversation itself changes.</p>
+	</div>
+
+	<p class="label">The policy, each agent, each round</p>
+	<div class="flow">
+		<div><b>s</b><span>State</span><small>Persona T, shared dialogue memory M, retrieved knowledge D.</small></div>
+		<div class="knob"><b>π</b><span>Policy</span><small>Rule template R and weights W decide how the state is written into the prompt.</small><em>the one thing we change: R</em></div>
+		<div><b>a</b><span>Action = prompt</span><small>The constructed prompt is the action.</small></div>
+		<div><b>o</b><span>Utterance</span><small>The agent's LLM executes the prompt and adds its reply to M.</small></div>
+		<div><b>m(o)</b><span>Process indicators</span><small>Scored on every turn, averaged over agents and rounds.</small></div>
+	</div>
+
+	<!-- <div class="compare">
+		<p class="label">One example · R is the sole change between runs</p>
+		<div class="lens" role="group" aria-label="Evaluation view">
+			<button id="v-sum" aria-pressed="true">Summary score only</button>
+			<button id="v-proc" aria-pressed="false">Process indicators</button>
+		</div>
+		<div class="runs summary-only" id="runs"></div>
+		<div class="takeaway"><p id="takeaway"></p></div>
+		<p class="note">Run A uses no rule template (None); Run B uses the Light template (“First directly answer [Q], then provide 1–2 pieces of evidence from [D]; respond to [M] if necessary…”). Everything else is the same: Land scenario, three agents on Qwen3-8B, Llama3-8B and Mistral-7B, five queries, 5 runs of 10 rounds, weights fixed at 1.0. Values are the “Overall” rows of Table 1 in Bo, Hu &amp; Liu (AAMAS 2026); the Δ column is computed here.</p>
+	</div> -->
+
+	<!-- <script src="data.js"></script>
+	<script>
+		// Land scenario, Overall: A = None, B = Light. Metric order in the table: Resp., Rebuttal, Non-rep., Evid., Stance.
+		const A = AAMAS_T1.Land.Overall.None, B = AAMAS_T1.Land.Overall.Light;
+		const ROWS = [
+			[0, 'Responsiveness', 'Does the turn address the last utterance?', true],
+			[3, 'Evidence usage', 'Does it use the retrieved knowledge?'],
+			[2, 'Non-repetition', 'How different is it from the agent’s last turn?'],
+			[1, 'Rebuttal', 'Does it explicitly push back?'],
+			[4, 'Stance', 'How close is it to the agent’s persona?'],
+		];
+		const f2 = (v) => v.toFixed(2);
+		const $ = (id) => document.getElementById(id);
+
+		let h = '<div class="h">Indicator</div><div class="h run"><i class="A"></i>Run A · R = None</div><div class="h run"><i class="B"></i>Run B · R = Light</div><div class="h dh">Δ (B − A)</div>';
+		for (const [j, name, q, isSum] of ROWS) {
+			const a = A[j][0], b = B[j][0], d = b - a, same = Math.abs(d) < 0.005, c = isSum ? 'sum' : 'proc';
+			h += `<div class="m ${c}"><b>${name}</b><small>${q}</small></div>` +
+				`<div class="v ${c}" title="${f2(a)} ± ${f2(A[j][1])}">${f2(a)}</div>` +
+				`<div class="v ${c}" title="${f2(b)} ± ${f2(B[j][1])}">${f2(b)}</div>` +
+				`<div class="d ${c} ${same ? 'same' : ''}">${same ? 'same' : (d > 0 ? '+' : '−') + f2(Math.abs(d))}</div>`;
+		}
+		$('runs').innerHTML = h;
+
+		const TEXT = {
+			sum: `On the summary score the two runs are identical: responsiveness ${f2(A[0][0])} in both. An outcome-style evaluation would report one result.`,
+			proc: `The process view reveals a clear difference. Run B uses retrieved evidence almost three times as often (${f2(B[3][0])} vs ${f2(A[3][0])}), repeats itself more (non-repetition ${f2(B[2][0])} vs ${f2(A[2][0])}), and shows almost no change in stance (${f2(B[4][0])} vs ${f2(A[4][0])}). The headline score stays fixed while the dialogue changes.`,
+		};
+		function view(v) {
+			$('runs').classList.toggle('summary-only', v === 'sum');
+			$('v-sum').setAttribute('aria-pressed', v === 'sum');
+			$('v-proc').setAttribute('aria-pressed', v === 'proc');
+			$('takeaway').textContent = TEXT[v];
+		}
+		$('v-sum').onclick = () => view('sum');
+		$('v-proc').onclick = () => view('proc');
+		view('sum');
+		new ResizeObserver(() => parent.postMessage({ demoHeight: Math.ceil(document.body.getBoundingClientRect().height) }, '*')).observe(document.body); // lets the host page size the iframe; rounded up, never short
+	</script> -->
+	<script>
+		new ResizeObserver(() => parent.postMessage({ demoHeight: Math.ceil(document.body.getBoundingClientRect().height) }, '*')).observe(document.body); // lets the host page size the iframe; rounded up, never short
+	</script>
+</body>
+</html>

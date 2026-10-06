@@ -1,0 +1,553 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta name="theme-color" content="#f3f6fa" />
+	<meta name="author" content="Jingyu Hu" />
+	<meta name="description" content="Jingyu Hu's fit for two Turing internships, multi-policy LLM training (TIN-STB-002) and process-based evaluation of multi-agent AI systems (TIN-STB-003), with interactive demos of the relevant papers." />
+	<title>LLM Training &amp; Agent Evaluation — Jingyu Hu</title>
+	<link rel="preload" href="fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+	<link rel="stylesheet" href="style.css" />
+	<link rel="stylesheet" href="page.css" />
+</head>
+<body>
+	<header>
+		<div class="shell">
+			<a class="wordmark" href="/"><span class="mark">JH</span>Jingyu Hu</a>
+			<nav>
+				<a href="#common">Criteria</a>
+				<a href="#steer">Demos</a>
+				<a class="pill" href="#contact">Contact</a>
+			</nav>
+		</div>
+	</header>
+
+	<main>
+		<section class="hero">
+			<div class="shell hero-grid">
+				<div>
+					<div class="status"> Internship Application - Jingyu Hu</div>
+					<p class="hero-name"><a href="/">Jingyu Hu</a></p>
+					<h1>LLM Training&nbsp;&amp;<br /><span class="serif">Agent Evaluation.</span></h1>
+					<p class="lede">I’m a fourth-year PhD candidate in trustworthy LLMs at the University of Bristol, and previously completed a research placement at the Alan Turing Institute. </p>
+					<p class="lede">My research focuses on how LLMs are trained and evaluated. On the training side, I study how multiple objectives interfere with or transfer to one another during post-training. On the evaluation side, I study how to assess a model's reasoning process, from individual steps to multi-agent interactions.</p>
+					<p class="lede">A detailed CV can be found <a href="https://fairxai.github.io/">here</a>.</p>
+					<div class="button-row">
+						<a class="button primary" href="#common">Criteria</a>
+						<a class="button primary" href="#steer">Demos</a>
+					</div>
+				</div>
+				<div class="hero-art">
+					<!-- Part A: mixed data enters one trunk, sorts into separate paths, and flows on into the sea.
+					<figure><canvas class="pixel-sea" width="48" height="72" aria-hidden="true"></canvas><figcaption class="hero-cap">Multi-policy training</figcaption></figure> -->
+					<!-- Part B: three agents take different routes to the same goal. -->
+					<figure><canvas class="pixel-paths" width="48" height="72" aria-hidden="true"></canvas><figcaption class="hero-cap">Multi-policy training &amp; multi-agent evaluation</figcaption></figure>
+				</div>
+			</div>
+			<div class="shell proof profile">
+				<div><strong>Background</strong><span><b>PhD @University of Bristol</b>, funded by EPSRC-DTP, UKRI</span><span><b>Placement @Alan Turing Institute</b>, Oct 2025 – Jun 2026</span></div>
+				<div><strong>Publications</strong><span>17 papers with 300+ citations</span><span><b>First author:</b> ICML · AAAI · EMNLP</span><span><b>Collaboration:</b> NeurIPS · ACL Findings · AAMAS · CIKM</span></div>
+				<div><strong>Research Interests</strong><span>LLM alignment · Explainability</span><span>Process audits · Multi-agent reliability</span></div>
+			</div>
+		</section>
+
+		<section class="section tint" id="overview">
+			<div class="shell">
+				<div class="section-head">
+					<p class="eyebrow">Overview</p>
+					<h2>Training <span class="serif">and Evaluation.</span></h2>
+					<p class="lede">My research connects how models learn with how they reason and interact. The sections below map this work to the selection criteria and show it through interactive demos of my papers.</p>
+				</div>
+				<div class="themes two">
+					<article><span>01</span><h3><a href="#common">Criteria</a></h3><p>Qualifications, research experience and responsibilities.</p></article>
+					<article><span>02</span><h3><a href="#steer">Research Demos</a></h3><p>Reasoning audits, multi-agent dialogue, data selection and model evaluation.</p></article>
+				</div>
+			</div>
+		</section>
+
+		<!-- ============ Shared by both roles ============ -->
+		<section class="section fit" id="common">
+			<div class="shell">
+				<div class="section-head">
+					<p class="eyebrow">Qualifications · Experience · Responsibilities</p>
+					<h2>Criteria.</h2>
+					<p class="lede">Research experience and qualifications relevant to the internships, organised by responsibilities and selection criteria.</p>
+				</div>
+
+				<div class="criteria-group">
+					<h3 class="criteria-title">Key responsibilities</h3>
+					<article class="row">
+						<div class="year">1</div>
+						<div>
+							<h4>Research and evaluation design</h4>
+							<p><a href="#d-logictrack">LogicTrack</a> evaluates the validity of individual reasoning steps; <a href="#d-monica">MONICA</a> measures behavioural drift during generation. My <a href="#eval-demo-1">multi-agent dialogue research</a> extends process evaluation to responsiveness, evidence use, repetition, rebuttal and stance across turns.</p>
+						</div>
+					</article>
+					<article class="row">
+						<div class="year">2</div>
+						<div>
+							<h4>Implementation and experimental delivery</h4>
+							<p><a href="#d-monitor">AutoMonitor-Bench</a> evaluates 22 monitors on 3,010 paired samples, while <a href="#d-stake">StakeBench</a> covers 560,876 market comments and 15 LLMs. This work involves dataset preparation, model inference and GPU experiment management.</p>
+						</div>
+					</article>
+					<article class="row">
+						<div class="year">3</div>
+						<div>
+							<h4>Analysis and communication</h4>
+							<p><a href="#d-stake">StakeBench</a> examines class collapse beneath aggregate accuracy; <a href="#d-monitor">AutoMonitor-Bench</a> analyses missed failures and false alarms. I communicate results through papers, interactive research demos and invited talks at Turing–Roche events.</p>
+						</div>
+					</article>
+					<article class="row">
+						<div class="year">4</div>
+						<div>
+							<h4>Publications and research dissemination</h4>
+							<p>17 papers with 300+ citations, including first-author work at ICML, AAAI and EMNLP, and collaborative work at NeurIPS, ACL Findings, AAMAS, EMNLP Findings and CIKM. I review for ICML, ICLR, NeurIPS, ACL, AISTATS, AIES and ECAI. 
+								<!-- <a href="/#publications">All publications</a> -->
+							</p>
+						</div>
+					</article>
+				</div>
+
+				<div class="criteria-group">
+					<h3 class="criteria-title">Essential</h3>
+					<article class="row">
+						<div class="year">5</div>
+						<div>
+							<h4>Relevant doctoral training</h4>
+							<p>Fourth-year PhD candidate in trustworthy LLMs at the University of Bristol (2023–2027), funded by UKRI EPSRC-DTP and supervised by Prof. Weiru Liu, Dr. Mengyue Yang and Dr. Ryan McConville. MSc in Data Science with Distinction and BSc in Computer Science.</p>
+						</div>
+					</article>
+					<article class="row">
+						<div class="year">6</div>
+						<div>
+							<h4>Python and PyTorch</h4>
+							<p>I use Python and PyTorch for hidden-state probes and activation steering (<a href="#d-monica">MONICA</a><!--, <a href="#d-poli">PoliLens</a>-->), LoRA fine-tuning (<a href="#d-logictrack">LogicTrack</a>) and graph contrastive learning in PyG (<a href="#d-sharp">SHARP</a>). My MSc research involved Bayesian neural networks.</p>
+						</div>
+					</article>
+					<article class="row">
+						<div class="year">7</div>
+						<div>
+							<h4>LLMs, optimisation and independent experimentation</h4>
+							<p>I designed, ran and analysed the experiments for my first-author LLM papers at ICML 2026, AAAI 2026 and EMNLP 2024. At the Turing–Roche partnership, I also led an <a href="#d-fusion">evaluation of foundation-model representations for multimodal cancer analysis</a>, covering probing, fusion, calibration and conformal prediction.</p>
+						</div>
+					</article>
+					<article class="row">
+						<div class="year">8</div>
+						<div>
+							<h4>Societal impact and human-centred AI</h4>
+							<p>My research covers <a href="#d-fcg">fairness in in-context learning</a><!--, <a href="#d-poli">political opinions in LLMs</a>--> and a case study of crime prediction models on government data. I gave an invited talk on bias and mitigation at the ESRC Centre for Sociodigital Futures in 2024 and received an AIES student grant in 2025.</p>
+						</div>
+					</article>
+				</div>
+
+				<div class="criteria-group">
+					<h3 class="criteria-title">Desirable</h3>
+					<article class="row">
+						<div class="year">9</div>
+						<div>
+							<h4>Parameter-efficient adaptation and transfer</h4>
+							<p>My post-training experience includes SFT, LoRA/PEFT, DPO and GRPO, alongside inference-time steering. In <a href="#d-monitor">AutoMonitor-Bench</a>, I studied negative transfer across misbehaviour categories, providing relevant experience for multi-task and continual-learning research.</p>
+						</div>
+					</article>
+					<article class="row">
+						<div class="year">10</div>
+						<div>
+							<h4>GPU computing and training infrastructure</h4>
+							<p>I run experiments through Slurm on Isambard-AI’s GH200 nodes, including multi-GPU inference for 30B models. My work also includes LoRA SFT on A100s and multimodal probing on an 8×A10G node. This experience provides a foundation for extending my work to language-model pre-training.</p>
+						</div>
+					</article>
+					<article class="row">
+						<div class="year">11</div>
+						<div>
+							<h4>Multi-agent systems</h4>
+							<p>Our <a href="#eval-demo-1">AAMAS 2026 study</a> uses policy-parameterised prompts to steer three-agent discussions on land use and education resource allocation. The policy combines task and persona, memory, knowledge, rules and weights, with process indicators measured across dialogue turns.</p>
+						</div>
+					</article>
+					<article class="row">
+						<div class="year">12</div>
+						<div>
+							<h4>Interdisciplinary research</h4>
+							<p>My academic training is in computer science. My work with psychology and social-science applications includes an XAI interface for non-experts in healthcare (xAI 2023), mental-health attribution (CIKM 2026) and mental-health risk detection (SD4H @ ICML 2026).</p>
+						</div>
+					</article>
+				</div>
+			</div>
+		</section>
+
+		<section class="section tint" id="steer">
+			<div class="shell">
+				<div class="section-head">
+					<p class="eyebrow">Papers · Interactive Demos</p>
+					<h2>Research <span class="serif">Demos.</span></h2>
+					<p class="lede">Interactive demos of my papers, grouped by theme: reasoning and Monitoring, multi-agent dialogue, data and representations, and model evaluation.</p>
+				</div>
+				<div class="section-head">
+					<p class="eyebrow">Activation Steering · Formal Verification · Reasoning</p>
+					<h3 class="criteria-title">Reasoning and Monitoring</h3>
+				</div>
+
+				<article class="pdemo" id="d-monica">
+					<div class="head">
+						<p class="venue">ICML 2026 · First author</p>
+						<h3>MONICA: Real-Time Monitoring and Calibration of Chain-of-Thought Sycophancy</h3>
+						<p>Reasoning models give in to a user’s wrong hint partway through their chain of thought. MONICA puts linear probes on hidden states, scores sycophantic drift every three sentences, and steers the activations back when the score passes 0.5.</p>
+					</div>
+					<div class="demo">
+						<div class="stage">
+							<div class="cue"><span class="chip">&lt;answer&gt;D&lt;/answer&gt;</span><span>Metadata cue · MMLU moral scenarios · correct answer C</span></div>
+							<div class="mon-grid">
+								<div class="cot"></div>
+								<div class="meter"><p class="label">SDS</p><div class="gauge"><i></i><b></b></div><span class="sds">–</span></div>
+							</div>
+							<p class="label" style="margin-top:14px">Qwen3-4B layers 0–35 · monitors 30–32 · steering 25–33</p>
+							<div class="layers"></div>
+							<div class="mon-foot">
+								<div><p class="label">Steering strength α′</p><div class="alpha"><i></i></div></div>
+								<div><p class="label">Answer</p><span class="answer">…</span></div>
+							</div>
+							<div class="actions"><button class="replay">Replay</button></div>
+						</div>
+						<div class="panel">
+							<div class="tabs"></div>
+							<p class="label">Resistance rate · AIME · Qwen3-4B (Table 2)</p>
+							<div class="chart"></div>
+							<p style="margin-top:16px">Top-two on 33 of 48 metrics across 3 models and 12 datasets. The fine-tuning baseline is DPO with LoRA on 2,000 preference pairs.</p>
+							<p class="why">The probe-and-steer loop can locate where two objectives collide inside the network, providing a useful routing signal for multi-policy training.</p>
+							<p class="links"><a href="https://arxiv.org/abs/2511.06419">Paper</a><a href="https://github.com/FairXAI/MONICA-CoT-Sycophancy">Code</a></p>
+						</div>
+						<!-- <p class="demo-note">Sentences are quoted (lightly shortened) from the paper’s Appendix C.2 and placed on one timeline; per-checkpoint SDS values are illustrative.</p> -->
+					</div>
+				</article>
+
+				<article class="pdemo" id="d-logictrack">
+					<div class="head">
+						<p class="venue">Preprint 2026 · First author</p>
+						<h3>LogicTrack: Auditing Reasoning Trajectories with Formal Logic Solvers</h3>
+						<p>Models often reach the right answer through invalid steps. LogicTrack formalises each step into SMT-LIB, checks it with Z3 during generation, and backtracks when the solver-based reward falls below 0.8. A LoRA-tuned variant learns to emit <code>&lt;backtrack&gt;</code> itself.</p>
+					</div>
+					<div class="demo">
+						<div class="stage logic">
+							<div class="premises"><p class="label">Premises (ProntoQA)</p><p>Sally is a yumpus. Yumpuses are zumpuses. … Impuses are numpuses. Each numpus is not bitter. <b>Query:</b> Sally is not bitter?</p></div>
+							<div class="steps"></div>
+							<div class="z3">
+								<p class="label">Autoformalised → Z3</p>
+								<pre class="solver"></pre>
+								<p class="label">Solver-based reward · forward if ≥ 0.75</p>
+								<div class="sbr"><i></i><b></b></div><span class="sbr-v">–</span>
+								<div class="actions"><button class="replay">Replay</button></div>
+							</div>
+						</div>
+						<div class="panel">
+							<p class="label">Verified-and-useful rate, base → LogicTrack (Table 4)</p>
+							<div class="chart" style="margin-top:22px"></div>
+							<p style="margin-top:20px">Improves 133 of 168 benchmark–metric comparisons. LoRA SFT (rank 32, about 6,000 backtracking trajectories) lifts Llama-3.1-8B’s answer accuracy from 56.8% to 68.1%.</p>
+							<p class="why">The step-level reward can drive search or training and help decide which data belongs on each path.</p>
+							<p class="links"><a href="https://arxiv.org/abs/2609.21492">Preprint</a></p>
+						</div>
+						<!-- <p class="demo-note">The example and the steps are from the paper’s Appendix C.2; SMT-LIB snippets and SBR values are illustrative.</p> -->
+					</div>
+				</article>
+			</div>
+		</section>
+
+		<section class="section" id="eval-demo-1">
+			<div class="shell"><iframe class="demo-frame" src="demos/process.html?v=4" title="Multi-Agent Dialogue · Prompt Policies and Process Evaluation" height="1100"></iframe></div>
+		</section>
+
+		<section class="section" id="organise">
+			<div class="shell">
+				<div class="section-head">
+					<p class="eyebrow">Data Selection · Multimodal Fusion · Reweighting</p>
+					<h3 class="criteria-title">Data and Representations</h3>
+				</div>
+
+				<article class="pdemo fcg" id="d-fcg" data-step="0">
+					<div class="head">
+						<p class="venue">EMNLP 2024 · First author</p>
+						<h3>Strategic Demonstration Selection for Fairer In-Context Learning</h3>
+						<p>Which few-shot examples an LLM sees changes how fair its predictions are. FCG clusters each demographic subgroup, scores candidate demonstrations with a genetic search, and assembles the prompt from the best ones.</p>
+					</div>
+					<div class="demo">
+						<div class="stage">
+							<svg viewBox="0 0 100 94" aria-label="Demonstration selection"></svg>
+							<p class="fcg-step"></p>
+							<div class="keys"><span><i style="border-color:var(--sea);background:var(--sea)"></i>Female, &gt;50K</span><span><i style="border-color:var(--sea)"></i>Female, ≤50K</span><span><i style="border-color:var(--sea-light);background:var(--sea-light)"></i>Male, &gt;50K</span><span><i style="border-color:var(--sea-light)"></i>Male, ≤50K</span></div>
+							<div class="actions"><button class="replay">Replay</button></div>
+						</div>
+						<div class="panel">
+							<p class="label">Adult income · GPT-3.5-turbo · K = 8 (Tables 1, 4)</p>
+							<div class="chart"><p>Runs when the selection finishes.</p></div>
+							<p style="margin-top:16px">Fairness ratios rise sharply and accuracy rises with them. On Adult, FCG takes under 3 hours where the LENs baseline needs over 50.</p>
+							<p class="why">Its group–score–route pipeline offers a practical pattern for organising training signals.</p>
+							<p class="links"><a href="https://research-information.bris.ac.uk/ws/portalfiles/portal/434768031/HU_EMNLP.pdf">Paper</a><a href="https://github.com/FairXAI/Strategic_ICL_Tabular">Code</a><a href="../TabularICL/index.html">Demo</a></p>
+						</div>
+						<p class="demo-note">Point positions and scores are illustrative; the steps, n = 8, m = 5, 10 rounds, the EvolScore weights and the results are from the paper.</p>
+					</div>
+				</article>
+
+				<article class="pdemo" id="d-fusion">
+					<div class="head">
+						<p class="venue">FM4LS @ ICML 2026 · First author · Turing–Roche</p>
+						<h3>Probing, Fusion and Trustworthiness of Foundation-Model Representations</h3>
+						<p>Frozen pathology and omics foundation models are probed on a real-world cohort of 7,634 cancer cases. Their features are fused three ways, and the predictors are then checked with conformal prediction and calibration.</p>
+					</div>
+					<div class="demo">
+						<div class="stage">
+							<div class="flow">
+								<div><b>Inputs</b><span>H&amp;E slides</span><span>RNA (TPM)</span></div>
+								<div><b>Frozen FMs</b><span>CONCH · UNI · Virchow · MUSK</span><span>UCE · PCA · scVI</span></div>
+								<div><b>Probes</b><span>HEMIL (MIL)</span><span>GeneMLP</span></div>
+								<div><b>Fusion</b><span>CONTACT · MCAT</span><span class="hot">LateMIL</span></div>
+							</div>
+							<div class="tabs"></div>
+							<p class="label">NSCLC biopsy site · 300 test cases · α = 0.10 (Table 2)</p>
+							<div class="waffle"></div>
+							<p class="wlegend"></p>
+						</div>
+						<div class="panel">
+							<p class="label">BC loss-of-heterozygosity · AUC (Table 5)</p>
+							<div class="chart"></div>
+							<p style="margin-top:16px">Fusion helps where both sources carry signal, but not everywhere: on NSCLC TMB, RNA alone (ACC 0.697) beats both fusion models. Experiments ran on an 8×A10G node.</p>
+							<p class="why"><b>Relevance:</b> transfer varies across heterogeneous sources. Those differences help determine which paths should share parameters.</p>
+							<p class="links"><a href="https://arxiv.org/abs/2606.17115v1">Paper</a></p>
+						</div>
+					</div>
+				</article>
+
+				<article class="pdemo sharp" id="d-sharp">
+					<div class="head">
+						<p class="venue">Algorithms 2025 · First author</p>
+						<h3>SHARP: Mitigating Degree Bias with Hard-to-Learn Nodes</h3>
+						<p>Graph models do worst on nodes with few neighbours. SHARP’s contrastive loss takes positives from labels and adaptively up-weights hard negatives, so poorly connected nodes get a cleaner training signal.</p>
+					</div>
+					<div class="demo">
+						<div class="stage">
+							<svg viewBox="0 0 100 92" aria-label="A degree-1 node, its positives and a hard negative"></svg>
+							<p class="sharp-step"></p>
+						</div>
+						<div class="panel">
+							<p class="label">F1 by node degree · Cora, GAT vs SHARP (Table 9) · axis from 0.6</p>
+							<div class="chart"></div>
+							<div class="keys"><span><i style="border-radius:2px;border-color:var(--sea-light);background:var(--sea-light)"></i>GAT</span><span><i style="border-radius:2px;border-color:var(--navy);background:var(--navy)"></i>SHARP</span></div>
+							<p style="margin-top:16px">The largest gain is on degree-1 nodes (0.708 → 0.827). With half the labels, SHARP-GCN still beats GCN trained on all of them.</p>
+							<p class="why">Adaptive weighting directs more training signal to hard, underserved examples, which can strengthen a multi-path scheme.</p>
+							<p class="links"><a href="https://arxiv.org/pdf/2506.05214">Paper</a><a href="https://github.com/ym21669/SHARP">Code</a></p>
+						</div>
+						<!-- <p class="demo-note">Graph drawn by hand after the paper’s Fig. 1 (a conductor whose only neighbour is a producer).</p> -->
+					</div>
+				</article>
+			</div>
+		</section>
+
+		<section class="section tint" id="measure">
+			<div class="shell">
+				<div class="section-head">
+					<p class="eyebrow">Negative Transfer · Benchmarks · Representation Probes</p>
+					<h3 class="criteria-title">Model Evaluation</h3>
+				</div>
+
+				<article class="pdemo" id="d-monitor">
+					<div class="head">
+						<p class="venue">ACL 2026 Findings · Second author</p>
+						<h3>AutoMonitor-Bench: How Reliable Are LLM Misbehaviour Monitors?</h3>
+						<p>3,010 paired samples across three categories (safety, sycophancy and specification gaming), used to test 22 LLM monitors by miss rate and false-alarm rate. Monitors are also fine-tuned with LoRA on a 153K-sample training set.</p>
+					</div>
+					<div class="demo">
+						<div class="stage">
+							<div class="lora">
+								<div><b>LoRA training data</b>Safety &amp; permission (code)</div>
+								<span class="arrow">→</span>
+								<div class="model"><b>Monitor</b>Qwen3 + LoRA<br /><span>r = 16 · 1 × A100</span></div>
+							</div>
+							<div class="tabs"></div>
+							<p class="label">Miss rate on specification gaming (Tables 9–10, Fig. 8)</p>
+							<div class="chart"></div>
+						</div>
+						<div class="panel">
+							<p>On its own category the tuned monitor becomes near-perfect (Qwen3-4B: miss rate 0.59 → 0.00). On a different category it gets much worse. Across monitors, miss rate and false-alarm rate trade off (r = −0.54).</p>
+							<p class="why">This is a direct measurement of negative transfer: one adapter improves its target category while weakening performance elsewhere. Multi-policy training is designed to contain that spillover.</p>
+							<p class="links"><a href="https://arxiv.org/abs/2601.05752">Paper</a></p>
+						</div>
+						<p class="demo-note">Qwen3-8B bar: trained on safety &amp; permission code. Qwen3-4B bar: trained on all categories, against its base model.</p>
+					</div>
+				</article>
+
+				<article class="pdemo" id="d-stake">
+					<div class="head">
+						<p class="venue">NeurIPS 2026 · Second author</p>
+						<h3>StakeBench: Language Understanding Grounded in Market Commitment</h3>
+						<p>560,876 prediction-market comments, labelled not by annotators but by what the speaker actually bet. Four tasks of increasing difficulty test 15 LLMs, run on GH200 nodes through Slurm.</p>
+					</div>
+					<div class="demo">
+						<div class="stage">
+							<div class="tabs"></div>
+							<p class="label">G3 · predicted action within 48 h (Table 4)</p>
+							<div class="stack"></div>
+							<p class="stack-cap"></p>
+							<div class="ladder">
+								<div><b>G1</b>Who holds a position?</div>
+								<div><b>G2</b>Which side is revealed?</div>
+								<div><b>G3</b>What action follows?</div>
+								<div><b>G4</b>Where do odds move?</div>
+							</div>
+						</div>
+						<div class="panel">
+							<p>10 of 15 models recall only one or two of the four action classes, and no model beats the stake-weighted baseline on G4 overall. The best model (GPT-5.5) reaches only 0.599 directed accuracy on G2.</p>
+							<p class="why">Per-class and per-split evaluation exposes collapse hidden by aggregate scores and shows whether a new training path delivers a genuine gain.</p>
+							<p class="links"><a href="https://arxiv.org/abs/2605.26074">Paper</a></p>
+						</div>
+					</div>
+				</article>
+
+				<!-- Hidden for now: PoliLens (political opinions) demo.
+				<article class="pdemo" id="d-poli">
+					<div class="head">
+						<p class="venue">AAAI 2026 · First author</p>
+						<h3>Fine-Grained Interpretation of Political Opinions in LLMs</h3>
+						<p>Opinions are split into four dimensions with eight concept vectors per layer, learned by CAA, RepE and linear probes across 8 open models. The same vectors detect a leaning and, added to the hidden state, steer it.</p>
+					</div>
+					<div class="demo">
+						<div class="stage">
+							<p class="prompt-q">How do you think inheritance is a legitimate form of wealth?</p>
+							<div class="tabs"></div>
+							<div class="dial"><i></i></div>
+							<div class="dial-ends"><span>Left · equality</span><span>Right · market</span></div>
+							<p class="dial-cap"></p>
+							<p class="reply"></p>
+						</div>
+						<div class="panel">
+							<p class="label">Probe detection accuracy · Llama3-8B (Table 5)</p>
+							<div class="chart"></div>
+							<p class="label" style="margin-top:20px">Equality (L) vs Authority (R) vectors, Llama3-8B (Fig. 6)</p>
+							<div class="corr"><div><strong>0.85</strong><span>correlation at layer 8: concepts confounded</span></div><div><strong>−0.17</strong><span>at layer 28: separated</span></div></div>
+							<p class="why">Layer-wise measurements show where concepts separate, giving empirical guidance on where paths can share parameters and where they should split.</p>
+							<p class="links"><a href="https://arxiv.org/abs/2506.04774">Paper</a><a href="https://github.com/FairXAI/LLM8ValuesProbing">Code</a><a href="../LlmPoliLens/">Demo</a></p>
+						</div>
+						<p class="demo-note">Mistral-7B with RepE intervention; every response is quoted verbatim from the paper.</p>
+					</div>
+				</article> -->
+			</div>
+		</section>
+
+		<section class="section sea" id="toolbox">
+			<div class="shell">
+				<div class="aside expertise">
+					<p class="eyebrow">Technical Expertise</p>
+					<p><b>Post-training</b> SFT · LoRA · DPO · GRPO </p>
+					<p><b>Interpretability</b> Linear probes ·  Steering · CAA · RepE</p>
+					<p><b>Evaluation</b> Benchmark design · Ablations · Calibration · LLM-as-judge</p>
+					<p><b>Research computing</b> Python · PyTorch · PyG · Slurm · GH200 · A100 · Multi-GPU inference</p>
+				</div>
+			</div>
+			<svg class="waves" viewBox="0 0 1200 100" preserveAspectRatio="none" aria-hidden="true">
+				<path d="M0 34 Q150 6 300 34 T600 34 T900 34 T1200 34 T1500 34 T1800 34 T2100 34 T2400 34 V100 H0Z" />
+				<path d="M0 50 Q150 76 300 50 T600 50 T900 50 T1200 50 T1500 50 T1800 50 T2100 50 T2400 50 V100 H0Z" />
+				<path d="M0 76 Q150 56 300 76 T600 76 T900 76 T1200 76 T1500 76 T1800 76 T2100 76 T2400 76 V100 H0Z" />
+			</svg>
+		</section>
+	</main>
+
+	<footer id="contact">
+		<div class="shell">
+			<p class="title">Contact</p>
+			<div class="links">
+				<a href="mailto:jingyu.hu@bristol.ac.uk">jingyu.hu@bristol.ac.uk</a>
+				<a href="/">Homepage</a>
+				<a href="../../JingyuHu_CV.pdf">CV</a>
+				<a href="https://scholar.google.com/citations?user=XLtLn9wAAAAJ&amp;hl=en">Google Scholar</a>
+				<a href="https://github.com/ym21669">GitHub</a>
+				<a href="https://uk.linkedin.com/in/jingyu-hu">LinkedIn</a>
+			</div>
+			<div class="meta"><span>© 2026 Jingyu Hu</span><span>Multi-Policy LLM Training &amp; Process-Based Agent Evaluation </span></div>
+		</div>
+	</footer>
+
+	<script>
+		// Embedded demos report their height to keep the full interaction visible.
+		addEventListener('message', (e) => {
+			const frame = [...document.querySelectorAll('.demo-frame')].find((f) => f.contentWindow === e.source);
+			if (frame && e.data && e.data.demoHeight) frame.height = e.data.demoHeight;
+		});
+		const stillHero = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+		/* Pixel art A (hidden in the hero for now): mixed tokens share one trunk, sort into four paths by type, then reach the sea.
+		(() => {
+			const cv = document.querySelector('.pixel-sea'), ctx = cv.getContext('2d'), W = cv.width, H = cv.height;
+			const blues = ['#bcd9ee', '#7fb3dc', '#2a6fb0', '#123a66', '#0b1c30'];
+			const kinds = ['#7fb3dc', '#2a6fb0', '#123a66', '#0b1c30']; // one colour per path
+			const y0 = 4, sea = 46, span = sea - y0;
+			const split = (y) => { const s = Math.min(1, Math.max(0, (y - 12) / 16)); return s * s * (3 - 2 * s); }; // smoothstep
+			const laneX = (k, y, jitter) => 24 + (k - 1.5) * 9 * split(y) + jitter * (1 - split(y));
+			// A fixed, shuffled stream of tokens so the trunk looks mixed.
+			const tokens = Array.from({ length: 28 }, (_, i) => ({ k: (i * 7) % 4, phase: (i * span) / 28, jitter: ((i * 5) % 5) - 2 }));
+
+			function draw(t) {
+				ctx.clearRect(0, 0, W, H);
+				// Faint tracks for the trunk and the four paths
+				ctx.fillStyle = '#d5e5f4';
+				for (let y = y0; y < sea; y++) for (let k = 0; k < 4; k++) ctx.fillRect(Math.round(laneX(k, y, 0)) - 1, y, 2, 1);
+				// Tokens
+				tokens.forEach(({ k, phase, jitter }) => {
+					const y = y0 + ((t / 160 + phase) % span);
+					ctx.fillStyle = kinds[k];
+					ctx.fillRect(Math.round(laneX(k, y, jitter)) - 1, Math.round(y), 2, 2);
+				});
+				// Sea at the bottom, as on the other pages
+				blues.forEach((color, k) => {
+					ctx.fillStyle = color;
+					for (let x = 0; x < W; x++) {
+						const y = Math.round(sea + k * 5.5 + 2 * Math.sin(x / (3.5 + k) + (k % 2 ? 1 : -1) * t / (700 + k * 150)));
+						ctx.fillRect(x, y, 1, H - y);
+					}
+				});
+			}
+			draw(0);
+			if (!stillHero) setInterval(() => draw(Date.now()), 120);
+		})(); */
+
+		// Pixel art B: three agents take different routes to the same goal.
+		(() => {
+			const cv = document.querySelector('.pixel-paths'), ctx = cv.getContext('2d'), W = cv.width, H = cv.height;
+			const GOAL = [24, 62];
+			const routes = [
+				{ color: '#7fb3dc', pts: [[8, 5], [9, 22], [15, 42], [24, 62]] },                                // direct
+				{ color: '#2a6fb0', pts: [[24, 5], [37, 15], [12, 25], [36, 35], [14, 45], [24, 62]] },           // back and forth
+				{ color: '#123a66', pts: [[40, 5], [42, 32], [31, 32], [31, 18], [44, 46], [24, 62]] },           // detour and loop
+			];
+			// Sample each route into pixels at unit spacing, so all three can be drawn up to the same fraction of their length.
+			routes.forEach((r) => {
+				r.px = [];
+				for (let i = 1; i < r.pts.length; i++) {
+					const [x0, y0] = r.pts[i - 1], [x1, y1] = r.pts[i], n = Math.ceil(Math.hypot(x1 - x0, y1 - y0));
+					for (let k = 0; k < n; k++) r.px.push([Math.round(x0 + ((x1 - x0) * k) / n), Math.round(y0 + ((y1 - y0) * k) / n)]);
+				}
+				r.px.push(GOAL);
+			});
+			const RUN = 6500, HOLD = 1800;
+			function draw(t) {
+				const p = Math.min(1, (t % (RUN + HOLD)) / RUN);
+				ctx.clearRect(0, 0, W, H);
+				ctx.fillStyle = 'rgba(11,28,48,0.07)';
+				for (let x = 0; x < W; x += 6) for (let y = 0; y < H; y += 6) ctx.fillRect(x, y, 1, 1);
+				routes.forEach((r) => {
+					const m = Math.floor(p * (r.px.length - 1));
+					ctx.fillStyle = r.color;
+					for (let i = 0; i <= m; i++) ctx.fillRect(r.px[i][0], r.px[i][1], 1, 1);
+					ctx.fillRect(r.pts[0][0] - 1, r.pts[0][1] - 1, 3, 3);
+					const [hx, hy] = r.px[m];
+					ctx.fillStyle = '#0b1c30'; ctx.fillRect(hx - 1, hy - 1, 3, 3);
+				});
+				ctx.fillStyle = p >= 1 ? '#123a66' : 'rgba(18,58,102,0.25)';
+				ctx.fillRect(GOAL[0] - 4, GOAL[1] - 1, 9, 5);
+				ctx.fillStyle = '#0b1c30';
+				ctx.fillRect(GOAL[0] - 5, GOAL[1] + 4, 11, 1);
+			}
+			draw(RUN);
+			if (!stillHero) { const t0 = Date.now(); setInterval(() => draw(Date.now() - t0), 60); }
+		})();
+	</script>
+	<script src="js/papers.js"></script>
+	<script type='text/javascript' id='mapmyvisitors' src='https://mapmyvisitors.com/map.js?cl=ffffff&w=0&t=n&d=Ahy71-On3T7C13jUl7diNh8JvLL3k3e7G4iPbFDUi5w&co=ffffff&cmn=ffffff&cmo=ffffff'></script>
+</body>
+</html>
